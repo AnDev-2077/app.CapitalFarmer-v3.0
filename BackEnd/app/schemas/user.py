@@ -6,6 +6,7 @@ class UsuarioOut(BaseModel):
     apellido: str
     telefono: str | None
     correo: str
+    rol: str 
 
     class Config:
         orm_mode = True

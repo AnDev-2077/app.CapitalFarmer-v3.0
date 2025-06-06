@@ -11,3 +11,4 @@ class Usuario(Base):
     correo = Column(String(100), nullable=False, unique=True)
     contrasena = Column(String(255), nullable=False)
     fecha_registro = Column(TIMESTAMP)
+    rol = Column(String(10), nullable=False)
