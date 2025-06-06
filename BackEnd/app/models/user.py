@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, TIMESTAMP
 from ..database import Base
 
@@ -10,5 +11,5 @@ class Usuario(Base):
     telefono = Column(String(20))
     correo = Column(String(100), nullable=False, unique=True)
     contrasena = Column(String(255), nullable=False)
-    fecha_registro = Column(TIMESTAMP)
+    fecha_registro = Column(TIMESTAMP, default=datetime.now())
     rol = Column(String(10), nullable=False)

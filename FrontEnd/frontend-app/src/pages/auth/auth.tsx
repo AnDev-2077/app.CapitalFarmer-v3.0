@@ -14,6 +14,37 @@ export default function LawFirmAuth() {
   const [rememberMe, setRememberMe] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
 
+  const [nombre, setNombre] = useState("")
+  const [apellido, setApellido] = useState("")
+  const [telefono, setTelefono] = useState("")
+  const [correo, setCorreo] = useState("")
+  const [contrasena, setContrasena] = useState("")
+
+  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = {
+      nombre,
+      apellido,
+      telefono,
+      correo,
+      contrasena,
+      rol: "cliente"
+    };
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/capitalfarmer.co/api/v1/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error("Error al registrar usuario");
+      await response.json();
+      // Maneja el éxito (redirige, muestra mensaje, etc.)
+    } catch (error) {
+      // Maneja el error (muestra mensaje, etc.)
+    }
+  };
+  
   // Función para manejar el cambio del checkbox
   const handleRememberMeChange = (checked: boolean | "indeterminate") => {
     setRememberMe(checked === true)
@@ -33,7 +64,7 @@ export default function LawFirmAuth() {
             <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
               <Scale className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-slate-800">LexPartners</span>
+            <span className="text-2xl font-bold text-slate-800">CapitalFarmer</span>
           </div>
 
           {/* Welcome Message */}
@@ -76,7 +107,9 @@ export default function LawFirmAuth() {
           </div>
 
           {/* Form Fields */}
-          <div className="space-y-4">
+          
+          <form onSubmit={isLogin ? undefined : handleRegister}className="space-y-4">
+            <div className="space-y-4">
             {/* Name Fields - Only for Registration */}
             {!isLogin && (
               <div className="grid grid-cols-2 gap-4">
@@ -91,6 +124,8 @@ export default function LawFirmAuth() {
                       type="text"
                       placeholder="Juan"
                       className="pl-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
                     />
                   </div>
                 </div>
@@ -105,136 +140,145 @@ export default function LawFirmAuth() {
                       type="text"
                       placeholder="Pérez"
                       className="pl-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
+                      value={apellido}
+                      onChange={e => setApellido(e.target.value)}
                     />
                   </div>
                 </div>
               </div>
-            )}
+              )}
 
-            {/* Phone Field - Only for Registration */}
-            {!isLogin && (
+              {/* Phone Field - Only for Registration */}
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-slate-700 font-medium">
+                    Teléfono
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+51 123456789"
+                      className="pl-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
+                      value={telefono}
+                      onChange={e => setTelefono(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-slate-700 font-medium">
-                  Teléfono
+                <Label htmlFor="email" className="text-slate-700 font-medium">
+                  Correo electrónico
                 </Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+51 123456789"
+                    id="email"
+                    type="email"
+                    placeholder="tu@email.com"
                     className="pl-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
+                    value={correo}
+                    onChange={e => setCorreo(e.target.value)}
                   />
                 </div>
               </div>
-            )}
 
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 font-medium">
-                Correo electrónico
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="pl-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-700 font-medium">
-                Contraseña
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="pl-10 pr-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password Field - Only for Registration */}
-            {!isLogin && (
+              {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">
-                  Confirmar contraseña
+                <Label htmlFor="password" className="text-slate-700 font-medium">
+                  Contraseña
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     className="pl-10 pr-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
+                    value={contrasena}
+                    onChange={e => setContrasena(e.target.value)}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Remember Me / Accept Terms */}
-          <div className="flex items-center justify-between">
-            {isLogin ? (
-              <>
-                <div className="flex items-center space-x-2">
+              {/* Confirm Password Field - Only for Registration */}
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">
+                    Confirmar contraseña
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="pl-10 pr-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Remember Me / Accept Terms */}
+            <div className="flex items-center justify-between">
+              {isLogin ? (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember"
+                      checked={rememberMe}
+                      onCheckedChange={handleRememberMeChange}
+                      className="border-slate-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
+                    />
+                    <Label htmlFor="remember" className="text-sm text-slate-600">
+                      Recordar por 30 días
+                    </Label>
+                  </div>
+                  <button className="text-sm text-amber-600 hover:text-amber-700 font-medium">
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </>
+              ) : (
+                <div className="flex items-start space-x-2">
                   <Checkbox
-                    id="remember"
-                    checked={rememberMe}
-                    onCheckedChange={handleRememberMeChange}
-                    className="border-slate-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
+                    id="terms"
+                    checked={acceptTerms}
+                    onCheckedChange={handleAcceptTermsChange}
+                    className="border-slate-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600 mt-0.5"
                   />
-                  <Label htmlFor="remember" className="text-sm text-slate-600">
-                    Recordar por 30 días
+                  <Label htmlFor="terms" className="text-sm text-slate-600 leading-relaxed">
+                    Acepto los{" "}
+                    <button className="text-amber-600 hover:text-amber-700 font-medium">términos y condiciones</button> y
+                    la <button className="text-amber-600 hover:text-amber-700 font-medium">política de privacidad</button>
                   </Label>
                 </div>
-                <button className="text-sm text-amber-600 hover:text-amber-700 font-medium">
-                  ¿Olvidaste tu contraseña?
-                </button>
-              </>
-            ) : (
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="terms"
-                  checked={acceptTerms}
-                  onCheckedChange={handleAcceptTermsChange}
-                  className="border-slate-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600 mt-0.5"
-                />
-                <Label htmlFor="terms" className="text-sm text-slate-600 leading-relaxed">
-                  Acepto los{" "}
-                  <button className="text-amber-600 hover:text-amber-700 font-medium">términos y condiciones</button> y
-                  la <button className="text-amber-600 hover:text-amber-700 font-medium">política de privacidad</button>
-                </Label>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
           {/* Submit Button */}
-          <Button className="w-full h-12 bg-slate-800 hover:bg-slate-900 text-white font-medium">
+            <Button type="submit" className="w-full h-12 bg-slate-800 hover:bg-slate-900 text-white font-medium">
             {isLogin ? "Iniciar sesión" : "Crear cuenta"}
-          </Button>
-
+            </Button>
+          </form>
+        
           {/* Toggle Auth Mode */}
           <div className="text-center">
             <span className="text-slate-600">{isLogin ? "¿No tienes una cuenta? " : "¿Ya tienes una cuenta? "}</span>
