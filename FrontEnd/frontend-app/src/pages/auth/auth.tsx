@@ -122,7 +122,7 @@ export default function LawFirmAuth() {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+51 123456789"
                     className="pl-10 h-12 border-slate-300 focus:border-amber-600 focus:ring-amber-600"
                   />
                 </div>
