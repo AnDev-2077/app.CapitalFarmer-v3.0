@@ -1,13 +1,19 @@
 "use client"
 
 import { useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Scale, Mail, Lock, Eye, EyeOff, User, Phone } from "lucide-react"
 
+import { useNavigate } from "react-router-dom"
+
 export default function LawFirmAuth() {
+
+  const navigate = useNavigate()
+
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -20,6 +26,7 @@ export default function LawFirmAuth() {
   const [correo, setCorreo] = useState("")
   const [contrasena, setContrasena] = useState("")
 
+  // Función para manejar el registro de usuarios
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = {
@@ -41,7 +48,30 @@ export default function LawFirmAuth() {
       await response.json();
       // Maneja el éxito (redirige, muestra mensaje, etc.)
     } catch (error) {
-      // Maneja el error (muestra mensaje, etc.)
+      // Maneja el error 
+    }
+  };
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = {
+      correo,
+      contrasena,
+      rememberMe
+    };
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/capitalfarmer.co/api/v1/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error("Correo o contraseña incorrectos");
+      const usuario = await response.json();
+      alert("¡Inicio de sesión exitoso!");
+      navigate("/admin-panel");
+    } catch (error) {
+      alert("Correo o contraseña incorrectos");
     }
   };
   
@@ -108,7 +138,7 @@ export default function LawFirmAuth() {
 
           {/* Form Fields */}
           
-          <form onSubmit={isLogin ? undefined : handleRegister}className="space-y-4">
+          <form onSubmit={isLogin ? handleLogin : handleRegister}className="space-y-4">
             <div className="space-y-4">
             {/* Name Fields - Only for Registration */}
             {!isLogin && (

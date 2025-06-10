@@ -4,6 +4,7 @@ from ..database import SessionLocal
 from ..models.user import Usuario
 from ..schemas.user import UsuarioOut
 from ..schemas.createuser import UsuarioCreate
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -14,6 +15,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+class LoginRequest(BaseModel):
+    correo: str
+    contrasena: str
 
 @router.get("/usuarios", response_model=list[UsuarioCreate])
 def leer_usuarios(db: Session = Depends(get_db)):
@@ -29,3 +34,10 @@ def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(nuevo_usuario)
     return nuevo_usuario
+
+@router.post("/login", response_model=UsuarioOut)
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.correo == request.correo).first()
+    if not usuario or usuario.contrasena != request.contrasena:
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+    return usuario

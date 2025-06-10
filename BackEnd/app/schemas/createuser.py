@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
 class UsuarioCreate(BaseModel):
+    id: int | None = None
     nombre: str
     apellido: str
-    telefono: str | None
     correo: str
-    contrasena: str
+    telefono: str | None
     rol: str

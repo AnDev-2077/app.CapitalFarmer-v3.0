@@ -16,6 +16,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Registrar rutas
 app.include_router(auth.router, prefix="/capitalfarmer.co/api/v1")

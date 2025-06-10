@@ -1,8 +1,14 @@
+import { Routes, Route } from "react-router-dom"
 import Auth from "./pages/auth/auth"
+import Home from "./pages/home/home"
 import "./App.css"
 
-function App() {
-  return <Auth />
-}
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Auth />} />
+      <Route path="/home/*" element={<Home />} />
 
-export default App
+    </Routes>
+  )
+}
