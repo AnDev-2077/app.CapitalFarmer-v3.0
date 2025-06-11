@@ -20,10 +20,6 @@ class LoginRequest(BaseModel):
     correo: str
     contrasena: str
 
-@router.get("/usuarios", response_model=list[UsuarioCreate])
-def leer_usuarios(db: Session = Depends(get_db)):
-    return db.query(Usuario).all()
-
 @router.post("/registro", response_model=UsuarioOut)
 def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     db_usuario = db.query(Usuario).filter(Usuario.correo == usuario.correo).first()
@@ -33,7 +29,15 @@ def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     db.add(nuevo_usuario)
     db.commit()
     db.refresh(nuevo_usuario)
-    return nuevo_usuario
+    return UsuarioOut(
+        id=nuevo_usuario.id,
+        nombre=nuevo_usuario.nombre,
+        apellido=nuevo_usuario.apellido,
+        telefono=nuevo_usuario.telefono,
+        correo=nuevo_usuario.correo,
+        rol_id=nuevo_usuario.rol_id,
+        rol_nombre=nuevo_usuario.rol.nombre if nuevo_usuario.rol else ""
+    )
 
 @router.post("/login", response_model=UsuarioOut)
 def login(request: LoginRequest, db: Session = Depends(get_db)):

@@ -6,4 +6,5 @@ class UsuarioCreate(BaseModel):
     apellido: str
     correo: str
     telefono: str | None
-    rol: str
+    rol_id: int
+    contrasena: str

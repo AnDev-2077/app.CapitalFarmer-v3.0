@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import auth
+from .routes import users
 from .database import Base, engine
 
 # Crear tablas
@@ -18,3 +19,4 @@ app.add_middleware(
 
 # Registrar rutas
 app.include_router(auth.router, prefix="/capitalfarmer.co/api/v1")
+app.include_router(users.router, prefix="/capitalfarmer.co/api/v1")

@@ -1,3 +1,7 @@
+"use client"
+
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import axios from "axios"
 import {
@@ -11,7 +15,7 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
-  Eye,
+  Plus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +24,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 export default function UserManagementPanel() {
   const [users, setUsers] = useState<any[]>([])
@@ -29,14 +43,123 @@ export default function UserManagementPanel() {
   const [roleFilter, setRoleFilter] = useState("all")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    correo: "",
+    telefono: "",
+    rol_id: "",
+  })
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingUserId, setEditingUserId] = useState<number | null>(null)
+  const [roles, setRoles] = useState<{ id: number; nombre: string }[]>([])
 
   useEffect(() => {
     setLoading(true)
-    axios.get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios") 
-      .then(res => setUsers(res.data))
+    axios
+      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios")
+      .then((res) => setUsers(res.data))
       .catch(() => setError("Error al cargar usuarios"))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/roles")
+      .then((res) => setRoles(res.data))
+      .catch(() => setRoles([]))
+  }, [])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleRolChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, rol_id: value }))
+  }
+
+  const handleCreateUser = () => {
+    setFormData({
+      nombre: "",
+      apellido: "",
+      correo: "",
+      telefono: "",
+      rol_id: "",
+    })
+    setEditingUserId(null)
+    setIsEditMode(false)
+    setDialogOpen(true)
+  }
+
+  const handleEditUser = (user: any) => {
+    setFormData({
+      nombre: user.nombre,
+      apellido: user.apellido,
+      correo: user.correo,
+      telefono: user.telefono || "",
+      rol_id: user.rol_id?.toString() || "",
+    })
+    setEditingUserId(user.id)
+    setIsEditMode(true)
+    setDialogOpen(true)
+  }
+
+  const handleDeleteUser = (userId: number) => {
+  axios
+    .delete(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${userId}`)
+    .then(() => {
+      setUsers((prev) => prev.filter((user) => user.id !== userId))
+      toast.success("Usuario eliminado correctamente")
+    })
+    .catch(() => toast.error("Error al eliminar usuario"))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validación básica
+    if (!formData.nombre || !formData.apellido || !formData.correo || !formData.rol_id) {
+      toast.error("Por favor complete todos los campos obligatorios")
+      return
+    }
+
+    if (isEditMode && editingUserId) {
+      axios
+      .put(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${editingUserId}`, { ...formData })
+      .then((res) => {
+        setUsers((prev) =>
+          prev.map((user) => (user.id === editingUserId ? res.data : user))
+        );
+        toast.success(`${formData.nombre} ${formData.apellido} ha sido actualizado exitosamente`);
+      })
+      .catch(() => toast.error("Error al actualizar usuario"));
+    } else {
+      axios
+      .post("http://127.0.0.1:8000/capitalfarmer.co/api/v1/registro", {
+        ...formData,
+        contrasena: "123456"
+      })
+      .then((res) => {
+        setUsers((prev) => [...prev, res.data]);
+        toast.success(`${formData.nombre} ${formData.apellido} ha sido creado exitosamente como ${formData.rol_id}`);
+      })
+      .catch(() => toast.error("Error al crear usuario"));
+    }
+
+    // Resetear el formulario y cerrar el diálogo
+    setFormData({
+      nombre: "",
+      apellido: "",
+      correo: "",
+      telefono: "",
+      rol_id: "",
+    })
+    setIsEditMode(false)
+    setEditingUserId(null)
+    setDialogOpen(false)
+  }
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -44,9 +167,9 @@ export default function UserManagementPanel() {
       user.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.telefono?.includes(searchTerm) ||
-      user.rol?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.rol_nombre?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesRole = roleFilter === "all" || user.rol === roleFilter
+    const matchesRole = roleFilter === "all" || user.rol_nombre === roleFilter
 
     return matchesSearch && matchesRole
   })
@@ -58,16 +181,37 @@ export default function UserManagementPanel() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case "admin":
+      case "Administrador (AD)":
         return "bg-red-100 text-red-800 hover:bg-red-100"
-      case "superadmin":
+      case "Asesor Legal Capital (AS)":
         return "bg-blue-100 text-blue-800 hover:bg-blue-100"
-      case "cliente":
+      case "Asesor Legal Farmer (AS)":
         return "bg-green-100 text-green-800 hover:bg-green-100"
+      case "Asesor Legal Trimex (AS)":
+        return "bg-purple-100 text-purple-800 hover:bg-green-100"
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-100"
     }
   }
+
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      setFormData({
+        nombre: "",
+        apellido: "",
+        correo: "",
+        telefono: "",
+        rol_id: "",
+      })
+      setIsEditMode(false)
+      setEditingUserId(null)
+    }
+    setDialogOpen(open)
+  }
+
+  const uniqueRoles = Array.from(
+    new Set(users.map((u) => u.rol_nombre).filter(Boolean))
+  );
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -87,7 +231,7 @@ export default function UserManagementPanel() {
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
+                <div className="text-2xl font-bold">{users.length}</div>
                 <p className="text-xs text-gray-500">+2 desde el mes pasado</p>
               </CardContent>
             </Card>
@@ -150,11 +294,117 @@ export default function UserManagementPanel() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos los roles</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="superadmin">SuperAdmin</SelectItem>
-                    <SelectItem value="cliente">Cliente</SelectItem>
+                    {uniqueRoles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCreateUser}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Agregar Usuario
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl">
+                        {isEditMode ? "Editar Datos" : "Crear Nuevo Usuario"}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {isEditMode
+                          ? "Modifique los campos necesarios para actualizar la información del usuario."
+                          : "Complete el formulario para crear un nuevo usuario en el sistema."}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="nombre">
+                            Nombre <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="nombre"
+                            name="nombre"
+                            placeholder="Ingrese nombre"
+                            value={formData.nombre}
+                            onChange={handleChange}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="apellido">
+                            Apellido <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="apellido"
+                            name="apellido"
+                            placeholder="Ingrese apellido"
+                            value={formData.apellido}
+                            onChange={handleChange}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="correo">
+                          Correo Electrónico <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="correo"
+                          name="correo"
+                          type="email"
+                          placeholder="ejemplo@correo.com"
+                          value={formData.correo}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="telefono">Teléfono</Label>
+                        <Input
+                          id="telefono"
+                          name="telefono"
+                          type="tel"
+                          placeholder="987654321"
+                          value={formData.telefono}
+                          onChange={handleChange}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="rol">
+                          Rol <span className="text-red-500">*</span>
+                        </Label>
+                        <Select value={formData.rol_id} onValueChange={handleRolChange} required>
+                          <SelectTrigger id="rol">
+                            <SelectValue placeholder="Seleccione un rol" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {roles.map((rol) => (
+                              <SelectItem key={rol.id} value={rol.id.toString()}>
+                                {rol.nombre}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex justify-between pt-4">
+                        <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button className="bg-blue-600" type="submit">
+                          {isEditMode ? "Actualizar Usuario" : "Crear Usuario"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="rounded-md border">
@@ -179,7 +429,7 @@ export default function UserManagementPanel() {
                         <TableCell>{user.correo}</TableCell>
                         <TableCell>{user.telefono}</TableCell>
                         <TableCell>
-                          <Badge className={getRoleBadgeColor(user.rol)}>{user.rol}</Badge>
+                          <Badge className={getRoleBadgeColor(user.rol_nombre)}>{user.rol_nombre}</Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -189,15 +439,11 @@ export default function UserManagementPanel() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ver detalles
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditUser(user)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteUser(user.id)}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Eliminar
                               </DropdownMenuItem>
@@ -258,7 +504,8 @@ export default function UserManagementPanel() {
                 </div>
               </div>
               <div className="text-sm text-gray-500">
-                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredUsers.length)} de {filteredUsers.length} usuarios
+                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredUsers.length)} de {filteredUsers.length}{" "}
+                usuarios
               </div>
             </CardContent>
           </Card>

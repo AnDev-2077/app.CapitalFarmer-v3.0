@@ -35,7 +35,7 @@ export default function LawFirmAuth() {
       telefono,
       correo,
       contrasena,
-      rol: "cliente"
+      rol_id: "8"
     };
 
     try {
@@ -69,7 +69,7 @@ export default function LawFirmAuth() {
       if (!response.ok) throw new Error("Correo o contraseña incorrectos");
       const usuario = await response.json();
       alert("¡Inicio de sesión exitoso!");
-      navigate("/admin-panel");
+      navigate("/home");
     } catch (error) {
       alert("Correo o contraseña incorrectos");
     }
@@ -319,8 +319,8 @@ export default function LawFirmAuth() {
         </div>
       </div>
 
-      {/* Right Panel - Hero Section */}
-      <div className="flex-1 relative bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
+      {/* Right Panel*/}
+      <div className="hidden md:flex-1 md:relative md:bg-gradient-to-br md:from-slate-800 md:via-slate-700 md:to-slate-900 md:block">
         <div className="absolute inset-0 bg-black/20" />
 
         {/* Background Image Placeholder */}
