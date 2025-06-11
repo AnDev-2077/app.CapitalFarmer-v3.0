@@ -44,4 +44,12 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     usuario = db.query(Usuario).filter(Usuario.correo == request.correo).first()
     if not usuario or usuario.contrasena != request.contrasena:
         raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
-    return usuario
+    return UsuarioOut(
+        id=usuario.id,
+        nombre=usuario.nombre,
+        apellido=usuario.apellido,
+        telefono=usuario.telefono,
+        correo=usuario.correo,
+        rol_id=usuario.rol_id,
+        rol_nombre=usuario.rol.nombre if usuario.rol else ""
+    )
