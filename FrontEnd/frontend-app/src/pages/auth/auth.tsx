@@ -68,6 +68,7 @@ export default function LawFirmAuth() {
       });
       if (!response.ok) throw new Error("Correo o contraseña incorrectos");
       const usuario = await response.json();
+      localStorage.setItem("user", JSON.stringify(usuario));
       alert("¡Inicio de sesión exitoso!");
       navigate("/home");
     } catch (error) {

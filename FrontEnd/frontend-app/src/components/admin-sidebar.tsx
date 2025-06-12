@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react";
 
 import {
   LayoutDashboard,
@@ -15,6 +16,7 @@ import {
   LogOut,
   User,
   Bell,
+  CalendarClock,
 } from "lucide-react"
 
 import {
@@ -48,7 +50,7 @@ const navigationItems = [
   },
   {
     title: "Asistencia",
-    icon: HeadphonesIcon,
+    icon: CalendarClock,
     url: "#",
     color: "text-purple-500",
   },
@@ -99,7 +101,22 @@ const navigationItems = [
 export function AdminSidebar({ ...props }) {
 
   const location = useLocation();
-  // const [activeItem, setActiveItem] = React.useState("Panel de Control")
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState<{ nombre: string; correo: string } | null>(null);
+
+  // Cargar el usuario desde localStorage al montar el componente
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  }
 
   return (
     <Sidebar className="border-r border-slate-200 bg-white" {...props}>
@@ -160,8 +177,8 @@ export function AdminSidebar({ ...props }) {
                     <AvatarFallback className="bg-slate-200 text-slate-700">AU</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col gap-0.5 leading-none text-left">
-                    <span className="font-medium text-sm text-slate-900">Admin User</span>
-                    <span className="text-xs text-slate-500">admin@webdev.com</span>
+                    <span className="font-medium text-sm text-slate-900">{user ? user.nombre : "Usuario"}</span>
+                    <span className="text-xs text-slate-500">{user ? user.correo : "correo@ejemplo.com"}</span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -172,7 +189,7 @@ export function AdminSidebar({ ...props }) {
                   <Settings className="size-4" />
                   <span>Configuración</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2 text-slate-700 hover:bg-slate-50">
+                <DropdownMenuItem className="gap-2 text-slate-700 hover:bg-slate-50" onClick={handleLogout}>
                   <LogOut className="size-4" />
                   <span>Cerrar sesión</span>
                 </DropdownMenuItem>
