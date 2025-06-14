@@ -6,6 +6,8 @@ from ..schemas.user import UsuarioOut
 from ..schemas.createuser import UsuarioCreate
 from ..schemas.roleout import RolOut
 from ..schemas.updateuser import UsuarioUpdate
+from ..schemas.cotizacion import CotizacionCreate
+from ..models.cotizacion import Cotizacion
 
 router = APIRouter()
 
@@ -68,3 +70,25 @@ def desactivar_usuario(user_id: int, db: Session = Depends(get_db)):
 @router.get("/roles", response_model=list[RolOut])
 def listar_roles(db: Session = Depends(get_db)):
     return db.query(Rol).all()
+
+@router.post("/cotizaciones", response_model=CotizacionCreate)
+def crear_cotizacion(cotizacion: CotizacionCreate, db: Session = Depends(get_db)):
+    # Convertir servicios_adicionales a string si es lista
+    data = cotizacion.dict()
+    if data.get("servicios_adicionales") is not None:
+        data["servicios_adicionales"] = ",".join(data["servicios_adicionales"])
+    nueva_cotizacion = Cotizacion(**data)
+    db.add(nueva_cotizacion)
+    db.commit()
+    db.refresh(nueva_cotizacion)
+    # Convertir servicios_adicionales de vuelta a lista para la respuesta
+    response = CotizacionCreate(
+        nombre_cliente=nueva_cotizacion.nombre_cliente,
+        tipo_servicio=nueva_cotizacion.tipo_servicio,
+        descripcion=nueva_cotizacion.descripcion,
+        fecha_creacion=nueva_cotizacion.fecha_creacion,
+        dias_validez=nueva_cotizacion.dias_validez,
+        servicios_adicionales=nueva_cotizacion.servicios_adicionales.split(",") if nueva_cotizacion.servicios_adicionales else [],
+        estado=nueva_cotizacion.estado
+    )
+    return response
