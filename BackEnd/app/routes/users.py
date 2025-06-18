@@ -8,6 +8,7 @@ from ..schemas.roleout import RolOut
 from ..schemas.updateuser import UsuarioUpdate
 from ..schemas.cotizacion import CotizacionCreate
 from ..models.cotizacion import Cotizacion
+from ..schemas.quotationout import QuotationOut
 
 router = APIRouter()
 
@@ -74,18 +75,45 @@ def listar_roles(db: Session = Depends(get_db)):
 @router.post("/cotizaciones", response_model=CotizacionCreate)
 def crear_cotizacion(cotizacion: CotizacionCreate, db: Session = Depends(get_db)):
     data = cotizacion.dict()
-    if data.get("servicios_adicionales") is not None:
-        data["servicios_adicionales"] = ",".join(data["servicios_adicionales"])
     nueva_cotizacion = Cotizacion(**data)
     db.add(nueva_cotizacion)
     db.commit()
     db.refresh(nueva_cotizacion)
     response = CotizacionCreate(
         nombre_cliente=nueva_cotizacion.nombre_cliente,
-        tipo_servicio=nueva_cotizacion.tipo_servicio,
-        descripcion=nueva_cotizacion.descripcion,
-        dias_validez=nueva_cotizacion.dias_validez,
-        servicios_adicionales=nueva_cotizacion.servicios_adicionales.split(",") if nueva_cotizacion.servicios_adicionales else [],
+        email=nueva_cotizacion.email,
+        telefono=nueva_cotizacion.telefono,
+        fecha_vencimiento=nueva_cotizacion.fecha_vencimiento,
+        servicio=nueva_cotizacion.servicio,
+        precio=float(nueva_cotizacion.precio) if nueva_cotizacion.precio is not None else None,
+        precio_honorarios=float(nueva_cotizacion.precio_honorarios) if nueva_cotizacion.precio_honorarios is not None else None,
+        precio_total=float(nueva_cotizacion.precio_total) if nueva_cotizacion.precio_total is not None else None,
+        comentarios=nueva_cotizacion.comentarios,
+        detalle_servicio=nueva_cotizacion.detalle_servicio,
+        exclusiones=nueva_cotizacion.exclusiones,
         estado=nueva_cotizacion.estado
     )
     return response
+
+@router.get("/cotizaciones", response_model=list[QuotationOut])
+def leer_cotizaciones(db: Session = Depends(get_db)):
+    cotizaciones = db.query(Cotizacion).all()
+    cotizaciones_out = []
+    for cotizacion in cotizaciones:
+        cotizaciones_out.append(QuotationOut(
+            id=cotizacion.id,
+            nombre_cliente=cotizacion.nombre_cliente,
+            email=cotizacion.email,
+            telefono=cotizacion.telefono,
+            fecha_vencimiento=cotizacion.fecha_vencimiento,
+            servicio=cotizacion.servicio,
+            precio=float(cotizacion.precio) if cotizacion.precio is not None else None,
+            precio_honorarios=float(cotizacion.precio_honorarios) if cotizacion.precio_honorarios is not None else None,
+            precio_total=float(cotizacion.precio_total) if cotizacion.precio_total is not None else None,
+            comentarios=cotizacion.comentarios,
+            detalle_servicio=cotizacion.detalle_servicio,
+            exclusiones=cotizacion.exclusiones,
+            estado=cotizacion.estado,
+            fecha_creacion=cotizacion.fecha_creacion
+        ))
+    return cotizaciones_out
