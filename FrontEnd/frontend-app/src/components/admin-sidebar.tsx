@@ -17,6 +17,7 @@ import {
   User,
   Bell,
   CalendarClock,
+  Files,
 } from "lucide-react"
 
 import {
@@ -38,7 +39,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
 const navigationItems = [
@@ -53,6 +53,12 @@ const navigationItems = [
     icon: CalendarClock,
     url: "#",
     color: "text-purple-500",
+  },
+  {
+    title: "Cotizaciones",
+    icon: Files,
+    url: "/home/quotes",
+    color: "text-amber-500",
   },
   {
     title: "Asesoría Legal",
@@ -125,9 +131,9 @@ export function AdminSidebar({ ...props }) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="hover:bg-transparent">
               <div className="flex items-center gap-2">
-                <Avatar className="size-8 bg-slate-800">
-                  <AvatarFallback>EJ</AvatarFallback>
-                </Avatar>
+                <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
+                  <Scale className="w-6 h-6 text-white" />
+                </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold text-slate-900">CapitalFarmer</span>
                 </div>
@@ -172,10 +178,9 @@ export function AdminSidebar({ ...props }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="hover:bg-slate-100 h-12">
-                  <Avatar className="size-8">
-                    <AvatarImage src="/placeholder-user.jpg" alt="Admin User" />
-                    <AvatarFallback className="bg-slate-200 text-slate-700">AU</AvatarFallback>
-                  </Avatar>
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                    <Users className="w-4 h-4 text-gray-600" />
+                  </div>
                   <div className="flex flex-col gap-0.5 leading-none text-left">
                     <span className="font-medium text-sm text-slate-900">{user ? user.nombre : "Usuario"}</span>
                     <span className="text-xs text-slate-500">{user ? user.correo : "correo@ejemplo.com"}</span>

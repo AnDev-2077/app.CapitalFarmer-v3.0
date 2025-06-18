@@ -188,7 +188,7 @@ export default function UserManagementPanel() {
       case "Asesor Legal Farmer (AS)":
         return "bg-green-100 text-green-800 hover:bg-green-100"
       case "Asesor Legal Trimex (AS)":
-        return "bg-purple-100 text-purple-800 hover:bg-green-100"
+        return "bg-purple-100 text-purple-800 hover:bg-purple-100"
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-100"
     }
