@@ -91,8 +91,6 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const precio = parseFloat(cotizacion.precio) || 0;
-    const honorarios = parseFloat(cotizacion.honorarios) || 0;
-    const precio_total = precio + honorarios;
     const payload = {
       nombre_cliente: cotizacion.cliente.nombre,
       email: cotizacion.cliente.email,
@@ -102,8 +100,6 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
         : null,
       servicio: cotizacion.servicio,
       precio: precio,
-      precio_honorarios: honorarios,
-      precio_total: precio_total,
       comentarios: cotizacion.comentarios,
       detalle_servicio: cotizacion.queHaremos,
       exclusiones: cotizacion.queNoIncluye,
@@ -113,7 +109,7 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
       // Puedes mostrar un mensaje de éxito aquí si quieres
       if (onClose) onClose();
       else navigate("/home/quotes");
-    } catch (err) {
+    } catch (error) {
       // Puedes mostrar un mensaje de error aquí si quieres
       alert("Error al guardar la cotización");
     }
@@ -129,8 +125,7 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
 
   const handleSalir = () => {
     if (confirm("¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.")) {
-      if (onClose) onClose();
-      else navigate("/home/quotes");
+      navigate("/home/quotes");
     }
   }
 
@@ -138,8 +133,8 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
     <div className="min-h-screen bg-gray-50 p-4 pb-20">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Panel de Cotizaciones</h1>
-          <p className="text-gray-600 mt-2">Crea y gestiona cotizaciones para tus clientes</p>
+          <h1 className="text-3xl font-bold text-gray-900">Crear Cotización</h1>
+          <p className="text-gray-600 mt-2">Completa los campos necesarios para crear una nueva cotización</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -291,9 +286,8 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
                       )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="honorarios" className="flex items-center gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="honorarios" className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4" />
                         Precio del servicio
                       </Label>
@@ -306,22 +300,6 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
                         value={cotizacion.precio}
                         onChange={(e) => handleFieldChange("precio", e.target.value)}
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="honorarios" className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Precio de Honorarios
-                      </Label>
-                      <Input
-                        id="honorarios"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="S/ 1,500.00"
-                        value={cotizacion.honorarios}
-                        onChange={(e) => handleFieldChange("honorarios", e.target.value)}
-                      />
-                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="comentarios" className="flex items-center gap-2">
@@ -370,6 +348,7 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 z-10">
                   <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <Button
+                      type="button"
                       variant="ghost"
                       onClick={handleSalir}
                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
@@ -463,22 +442,6 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
                       </span>
                       <span>S/ {cotizacion.precio || "Por completar"}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>
-                        <strong>Honorarios:</strong>
-                      </span>
-                      <span>S/ {cotizacion.honorarios || "Por completar"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>
-                        <strong>Precio Total:</strong>
-                      </span>
-                      <span>S/
-                        {cotizacion.precio && cotizacion.honorarios
-                        ? (parseFloat(cotizacion.precio) + parseFloat(cotizacion.honorarios)).toFixed(2)
-                        : "Autogenerado"}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
@@ -515,7 +478,9 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
 
                 {/* Footer */}
                 <div className="mt-8 pt-4 border-t text-center text-sm text-gray-500">
-                  <p>Esta cotización es válida hasta la fecha de vencimiento especificada</p>
+                  <p>Nota: Este precio incluye la emisión de un Recibo por Honorarios de un 
+                     abogado del estudio, pero si desea boleta o factura del estudio deberá añadir el 18% de IGV
+                  </p>
                 </div>
               </div>
             </CardContent>

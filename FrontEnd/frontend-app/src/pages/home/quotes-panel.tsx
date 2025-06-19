@@ -18,6 +18,7 @@ import {
   Paperclip,
   FileSpreadsheet,
   File,
+  FileScan,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,7 +52,7 @@ const CotizacionPDF = ({ quotation }: { quotation: any }) => (
     <Page size="A4" style={pdfStyles.page}>
       <View style={pdfStyles.header}>
         <Text style={pdfStyles.title}>COTIZACIÓN</Text>
-        <Text style={pdfStyles.cod}>Cod. {quotation.id || ""}</Text>
+        <Text style={pdfStyles.cod}>Cod. {quotation.codigo_cotizacion || ""}</Text>
       </View>
       <View style={pdfStyles.section}>
         <Text style={pdfStyles.sectionTitle}>Datos del Cliente</Text>
@@ -65,11 +66,9 @@ const CotizacionPDF = ({ quotation }: { quotation: any }) => (
         <Text style={pdfStyles.sectionTitle}>Detalles de la Cotización</Text>
         <View>
           <View style={pdfStyles.row}><Text style={pdfStyles.label}>Servicio:</Text><Text>{quotation.servicio || "Por seleccionar"}</Text></View>
-          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Fecha de Emisión:</Text><Text>{quotation.fecha_emision || ""}</Text></View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Fecha de Emisión:</Text><Text>{quotation.fecha_creacion?.slice(0, 10) || ""}</Text></View>
           <View style={pdfStyles.row}><Text style={pdfStyles.label}>Fecha de Vencimiento:</Text><Text>{quotation.fecha_vencimiento || "Por seleccionar"}</Text></View>
           <View style={pdfStyles.row}><Text style={pdfStyles.label}>Precio:</Text><Text>S/ {quotation.precio || "Por completar"}</Text></View>
-          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Honorarios:</Text><Text>S/ {quotation.precio_honorarios || "Por completar"}</Text></View>
-          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Precio Total:</Text><Text>S/ {quotation.precio_total || "Autogenerado"}</Text></View>
         </View>
       </View>
       {quotation.comentarios && (
@@ -91,7 +90,8 @@ const CotizacionPDF = ({ quotation }: { quotation: any }) => (
         </View>
       )}
       <View style={pdfStyles.footer}>
-        <Text>Esta cotización es válida hasta la fecha de vencimiento especificada</Text>
+        <Text>Nota: Este precio incluye la emisión de un Recibo por Honorarios de un 
+          abogado del estudio, pero si desea boleta o factura del estudio deberá añadir el 18% de IGV</Text>
       </View>
     </Page>
   </Document>
@@ -270,11 +270,13 @@ export default function UserManagementPanel() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
+                      <TableHead>Código</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Teléfono</TableHead>
                       <TableHead>Servicio</TableHead>
                       <TableHead>Fecha de vencimiento</TableHead>
                       <TableHead>Estado</TableHead>
+                      <TableHead>Responsable</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -282,6 +284,7 @@ export default function UserManagementPanel() {
                     {currentQuotations.map((quotation) => (
                       <TableRow key={quotation.id}>
                         <TableCell>{quotation.id}</TableCell>
+                        <TableCell>{quotation.codigo_cotizacion}</TableCell>
                         <TableCell>{quotation.nombre_cliente}</TableCell>
                         <TableCell>{quotation.telefono}</TableCell>
                         <TableCell>{quotation.servicio}</TableCell>
@@ -301,12 +304,25 @@ export default function UserManagementPanel() {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleExportPDF(quotation)}>
-                                <File className="mr-2 h-4 w-4 " />
-                                Pdf
-                              </DropdownMenuItem>
                               <DropdownMenuItem>
-                                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                <FileScan className="mr-2 h-4 w-4" />
+                                Detalles
+                              </DropdownMenuItem>
+                              <PDFDownloadLink
+                                  document={<CotizacionPDF quotation={quotation} />}
+                                  fileName={`cotizacion_${quotation.codigo_cotizacion || "sin_codigo"}_${(quotation.nombre_cliente || "sin_cliente").replace(/ /g, "_")}.pdf`}
+                                >
+                                  {({ loading }) =>
+                                    loading ? "Generando PDF..." : (
+                                      <DropdownMenuItem onClick={() => handleExportPDF(quotation)}>
+                                        <File className="mr-2 h-4 w-4 text-red-600" />
+                                        Pdf
+                                      </DropdownMenuItem>
+                                    )
+                                  }
+                                </PDFDownloadLink>
+                              <DropdownMenuItem>
+                                <FileSpreadsheet className="mr-2 h-4 w-4 text-green-600" />
                                 Excel
                               </DropdownMenuItem>
                               <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteQuotation(quotation.id)}>

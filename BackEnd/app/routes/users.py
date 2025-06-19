@@ -80,14 +80,13 @@ def crear_cotizacion(cotizacion: CotizacionCreate, db: Session = Depends(get_db)
     db.commit()
     db.refresh(nueva_cotizacion)
     response = CotizacionCreate(
+        codigo_cotizacion=nueva_cotizacion.codigo_cotizacion,
         nombre_cliente=nueva_cotizacion.nombre_cliente,
         email=nueva_cotizacion.email,
         telefono=nueva_cotizacion.telefono,
         fecha_vencimiento=nueva_cotizacion.fecha_vencimiento,
         servicio=nueva_cotizacion.servicio,
         precio=float(nueva_cotizacion.precio) if nueva_cotizacion.precio is not None else None,
-        precio_honorarios=float(nueva_cotizacion.precio_honorarios) if nueva_cotizacion.precio_honorarios is not None else None,
-        precio_total=float(nueva_cotizacion.precio_total) if nueva_cotizacion.precio_total is not None else None,
         comentarios=nueva_cotizacion.comentarios,
         detalle_servicio=nueva_cotizacion.detalle_servicio,
         exclusiones=nueva_cotizacion.exclusiones,
@@ -102,14 +101,13 @@ def leer_cotizaciones(db: Session = Depends(get_db)):
     for cotizacion in cotizaciones:
         cotizaciones_out.append(QuotationOut(
             id=cotizacion.id,
+            codigo_cotizacion=cotizacion.codigo_cotizacion,
             nombre_cliente=cotizacion.nombre_cliente,
             email=cotizacion.email,
             telefono=cotizacion.telefono,
             fecha_vencimiento=cotizacion.fecha_vencimiento,
             servicio=cotizacion.servicio,
             precio=float(cotizacion.precio) if cotizacion.precio is not None else None,
-            precio_honorarios=float(cotizacion.precio_honorarios) if cotizacion.precio_honorarios is not None else None,
-            precio_total=float(cotizacion.precio_total) if cotizacion.precio_total is not None else None,
             comentarios=cotizacion.comentarios,
             detalle_servicio=cotizacion.detalle_servicio,
             exclusiones=cotizacion.exclusiones,

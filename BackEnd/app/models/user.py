@@ -22,3 +22,4 @@ class Usuario(Base):
     rol_id = Column(BigInteger, ForeignKey("roles.id"), nullable=False)
     is_active = Column(Boolean, default=True)
     rol = relationship("Rol", back_populates="usuarios")
+    cotizaciones = relationship('Cotizacion', secondary='usuario_cotizacion', back_populates='usuarios')
