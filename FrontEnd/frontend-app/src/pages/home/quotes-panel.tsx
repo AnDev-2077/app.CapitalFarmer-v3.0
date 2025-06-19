@@ -27,7 +27,75 @@ import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, pdf } from "@react-pdf/renderer";
 
+
+const pdfStyles = StyleSheet.create({
+  page: { padding: 32, fontFamily: "Helvetica" },
+  header: { textAlign: "center", marginBottom: 24 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 4 },
+  cod: { color: "#6b7280", fontSize: 12 },
+  section: { marginBottom: 18 },
+  sectionTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 8, color: "#1f2937" },
+  box: { backgroundColor: "#f9fafb", padding: 12, borderRadius: 8 },
+  row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
+  label: { fontWeight: "bold" },
+  comment: { color: "#374151", backgroundColor: "#f9fafb", padding: 12, borderRadius: 8 },
+  greenBox: { color: "#166534", backgroundColor: "#dcfce7", padding: 12, borderRadius: 8, borderLeft: "4px solid #22c55e" },
+  redBox: { color: "#b91c1c", backgroundColor: "#fee2e2", padding: 12, borderRadius: 8, borderLeft: "4px solid #ef4444" },
+  footer: { marginTop: 32, paddingTop: 12, borderTop: "1px solid #e5e7eb", textAlign: "center", fontSize: 12, color: "#6b7280" }
+});
+
+const CotizacionPDF = ({ quotation }: { quotation: any }) => (
+  <Document>
+    <Page size="A4" style={pdfStyles.page}>
+      <View style={pdfStyles.header}>
+        <Text style={pdfStyles.title}>COTIZACIÓN</Text>
+        <Text style={pdfStyles.cod}>Cod. {quotation.id || ""}</Text>
+      </View>
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.sectionTitle}>Datos del Cliente</Text>
+        <View style={pdfStyles.box}>
+          <Text><Text style={pdfStyles.label}>Nombre:</Text> {quotation.nombre_cliente || "Por completar"}</Text>
+          <Text><Text style={pdfStyles.label}>Email:</Text> {quotation.email || "Por completar"}</Text>
+          <Text><Text style={pdfStyles.label}>Teléfono:</Text> {quotation.telefono || "Por completar"}</Text>
+        </View>
+      </View>
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.sectionTitle}>Detalles de la Cotización</Text>
+        <View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Servicio:</Text><Text>{quotation.servicio || "Por seleccionar"}</Text></View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Fecha de Emisión:</Text><Text>{quotation.fecha_emision || ""}</Text></View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Fecha de Vencimiento:</Text><Text>{quotation.fecha_vencimiento || "Por seleccionar"}</Text></View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Precio:</Text><Text>S/ {quotation.precio || "Por completar"}</Text></View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Honorarios:</Text><Text>S/ {quotation.precio_honorarios || "Por completar"}</Text></View>
+          <View style={pdfStyles.row}><Text style={pdfStyles.label}>Precio Total:</Text><Text>S/ {quotation.precio_total || "Autogenerado"}</Text></View>
+        </View>
+      </View>
+      {quotation.comentarios && (
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Comentarios</Text>
+          <Text style={pdfStyles.comment}>{quotation.comentarios}</Text>
+        </View>
+      )}
+      {quotation.detalle_servicio && (
+        <View style={pdfStyles.section}>
+          <Text style={[pdfStyles.sectionTitle, { color: "#166534" }]}>¿Qué haremos por usted?</Text>
+          <Text style={pdfStyles.greenBox}>{quotation.detalle_servicio}</Text>
+        </View>
+      )}
+      {quotation.exclusiones && (
+        <View style={pdfStyles.section}>
+          <Text style={[pdfStyles.sectionTitle, { color: "#b91c1c" }]}>¿Qué no incluye la cotización?</Text>
+          <Text style={pdfStyles.redBox}>{quotation.exclusiones}</Text>
+        </View>
+      )}
+      <View style={pdfStyles.footer}>
+        <Text>Esta cotización es válida hasta la fecha de vencimiento especificada</Text>
+      </View>
+    </Page>
+  </Document>
+);
 
 export default function UserManagementPanel() {
   const [quotation, setQuotation] = useState<any[]>([])
@@ -62,6 +130,12 @@ export default function UserManagementPanel() {
     })
     .catch(() => toast.error("Error al eliminar cotización"))
   }
+
+  const handleExportPDF = async (quotation: any) => {
+    const blob = await pdf(<CotizacionPDF quotation={quotation} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  };
 
   const filteredQuotations = quotation.filter((quotation) => {
     const matchesSearch =
@@ -227,7 +301,7 @@ export default function UserManagementPanel() {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleExportPDF(quotation)}>
                                 <File className="mr-2 h-4 w-4 " />
                                 Pdf
                               </DropdownMenuItem>
