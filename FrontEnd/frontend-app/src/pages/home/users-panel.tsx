@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import { useAuth } from "@/context/AuthContext";
 
 export default function UserManagementPanel() {
   const [users, setUsers] = useState<any[]>([])
@@ -55,14 +56,20 @@ export default function UserManagementPanel() {
   const [editingUserId, setEditingUserId] = useState<number | null>(null)
   const [roles, setRoles] = useState<{ id: number; nombre: string }[]>([])
 
+  const { token } = useAuth();
+
   useEffect(() => {
     setLoading(true)
     axios
-      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios")
+      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios" , {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
       .then((res) => setUsers(res.data))
       .catch(() => setError("Error al cargar usuarios"))
       .finally(() => setLoading(false))
-  }, [])
+  }, [token])
 
   useEffect(() => {
     axios

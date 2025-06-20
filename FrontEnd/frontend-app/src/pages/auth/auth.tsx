@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Scale, Mail, Lock, Eye, EyeOff, User, Phone } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 
 import { useNavigate } from "react-router-dom"
 
 export default function LawFirmAuth() {
 
   const navigate = useNavigate()
+  const { login: authLogin } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
@@ -67,10 +69,15 @@ export default function LawFirmAuth() {
         body: JSON.stringify(data)
       });
       if (!response.ok) throw new Error("Correo o contraseña incorrectos");
-      const usuario = await response.json();
-      localStorage.setItem("user", JSON.stringify(usuario));
-      alert("¡Inicio de sesión exitoso!");
-      navigate("/home");
+      const result = await response.json();
+      // Guardar token y cargar usuario globalmente
+      if (result && result.access_token) {
+        await authLogin(result.access_token);
+        alert("¡Inicio de sesión exitoso!");
+        navigate("/home");
+      } else {
+        throw new Error("Token no recibido");
+      }
     } catch (error) {
       alert("Correo o contraseña incorrectos");
     }
