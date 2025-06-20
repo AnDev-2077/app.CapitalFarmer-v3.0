@@ -10,6 +10,7 @@ from ..schemas.cotizacion import CotizacionCreate
 from ..models.cotizacion import Cotizacion
 from ..schemas.quotationout import QuotationOut
 from ..schemas.updatequotation import CotizacionUpdate
+from ..routes.auth import get_current_user
 
 router = APIRouter()
 
@@ -22,7 +23,7 @@ def get_db():
         db.close()
 
 @router.get("/usuarios", response_model=list[UsuarioOut])
-def leer_usuarios(db: Session = Depends(get_db)):
+def leer_usuarios(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     usuarios = db.query(Usuario).options(joinedload(Usuario.rol)).filter(Usuario.is_active == True).all()
     usuarios_out = []
     for usuario in usuarios:
@@ -60,7 +61,7 @@ def actualizar_usuario(user_id: int, usuario_update: UsuarioUpdate, db: Session 
     )
 
 @router.delete("/usuarios/{user_id}", response_model=UsuarioOut)
-def desactivar_usuario(user_id: int, db: Session = Depends(get_db)):
+def desactivar_usuario(user_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     usuario = db.query(Usuario).filter(Usuario.id == user_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -96,7 +97,7 @@ def crear_cotizacion(cotizacion: CotizacionCreate, db: Session = Depends(get_db)
     return response
 
 @router.get("/cotizaciones", response_model=list[QuotationOut])
-def leer_cotizaciones(db: Session = Depends(get_db)):
+def leer_cotizaciones(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     cotizaciones = db.query(Cotizacion).all()
     cotizaciones_out = []
     for cotizacion in cotizaciones:
@@ -121,7 +122,7 @@ def leer_cotizaciones(db: Session = Depends(get_db)):
 #reemplasar cunado se implemeten funciones de (contexto de reload y el modar de hero ui)
 
 @router.get("/cotizaciones/{cotizacion_id}", response_model=QuotationOut)
-def obtener_cotizacion_por_id(cotizacion_id: int, db: Session = Depends(get_db)):
+def obtener_cotizacion_por_id(cotizacion_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     cotizacion = db.query(Cotizacion).filter(Cotizacion.id == cotizacion_id).first()
     if not cotizacion:
         raise HTTPException(status_code=404, detail="Cotización no encontrada")
@@ -168,4 +169,19 @@ def actualizar_cotizacion(
         exclusiones=cotizacion.exclusiones,
         estado=cotizacion.estado,
         fecha_creacion=cotizacion.fecha_creacion
+    )
+
+@router.get("/usuarios/me", response_model=UsuarioOut)
+def leer_usuario_actual(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.correo == current_user.get("sub")).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return UsuarioOut(
+        id=usuario.id,
+        nombre=usuario.nombre,
+        apellido=usuario.apellido,
+        telefono=usuario.telefono,
+        correo=usuario.correo,
+        rol_id=usuario.rol_id,
+        rol_nombre=usuario.rol.nombre if usuario.rol else ""
     )
