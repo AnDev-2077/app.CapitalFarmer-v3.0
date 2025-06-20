@@ -9,6 +9,7 @@ from ..schemas.updateuser import UsuarioUpdate
 from ..schemas.cotizacion import CotizacionCreate
 from ..models.cotizacion import Cotizacion
 from ..schemas.quotationout import QuotationOut
+from ..schemas.updatequotation import CotizacionUpdate
 
 router = APIRouter()
 
@@ -115,3 +116,56 @@ def leer_cotizaciones(db: Session = Depends(get_db)):
             fecha_creacion=cotizacion.fecha_creacion
         ))
     return cotizaciones_out
+
+#/cotizaciones/{cotizacion_id} ruta solo para prueba - 
+#reemplasar cunado se implemeten funciones de (contexto de reload y el modar de hero ui)
+
+@router.get("/cotizaciones/{cotizacion_id}", response_model=QuotationOut)
+def obtener_cotizacion_por_id(cotizacion_id: int, db: Session = Depends(get_db)):
+    cotizacion = db.query(Cotizacion).filter(Cotizacion.id == cotizacion_id).first()
+    if not cotizacion:
+        raise HTTPException(status_code=404, detail="Cotización no encontrada")
+    return QuotationOut(
+        id=cotizacion.id,
+        codigo_cotizacion=cotizacion.codigo_cotizacion,
+        nombre_cliente=cotizacion.nombre_cliente,
+        email=cotizacion.email,
+        telefono=cotizacion.telefono,
+        fecha_vencimiento=cotizacion.fecha_vencimiento,
+        servicio=cotizacion.servicio,
+        precio=float(cotizacion.precio) if cotizacion.precio is not None else None,
+        comentarios=cotizacion.comentarios,
+        detalle_servicio=cotizacion.detalle_servicio,
+        exclusiones=cotizacion.exclusiones,
+        estado=cotizacion.estado,
+        fecha_creacion=cotizacion.fecha_creacion
+    )
+
+@router.put("/cotizaciones/{cotizacion_id}", response_model=QuotationOut)
+def actualizar_cotizacion(
+    cotizacion_id: int,
+    cotizacion_update: CotizacionUpdate,
+    db: Session = Depends(get_db)
+):
+    cotizacion = db.query(Cotizacion).filter(Cotizacion.id == cotizacion_id).first()
+    if not cotizacion:
+        raise HTTPException(status_code=404, detail="Cotización no encontrada")
+    for field, value in cotizacion_update.dict(exclude_unset=True).items():
+        setattr(cotizacion, field, value)
+    db.commit()
+    db.refresh(cotizacion)
+    return QuotationOut(
+        id=cotizacion.id,
+        codigo_cotizacion=cotizacion.codigo_cotizacion,
+        nombre_cliente=cotizacion.nombre_cliente,
+        email=cotizacion.email,
+        telefono=cotizacion.telefono,
+        fecha_vencimiento=cotizacion.fecha_vencimiento,
+        servicio=cotizacion.servicio,
+        precio=float(cotizacion.precio) if cotizacion.precio is not None else None,
+        comentarios=cotizacion.comentarios,
+        detalle_servicio=cotizacion.detalle_servicio,
+        exclusiones=cotizacion.exclusiones,
+        estado=cotizacion.estado,
+        fecha_creacion=cotizacion.fecha_creacion
+    )

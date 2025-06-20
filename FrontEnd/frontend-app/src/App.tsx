@@ -11,6 +11,7 @@ export default function App() {
       <Route path="/" element={<Auth />} />
       <Route path="/home/*" element={<Home />} />
       <Route path="/home/quotes/add" element={<CreateQuotesPanel />} />
+      <Route path="/home/quotes/edit/:id" element={<CreateQuotesPanel mode="editar"/>} />
     </Routes>
   )
 }

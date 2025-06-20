@@ -30,7 +30,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, pdf } from "@react-pdf/renderer";
 
-
 const pdfStyles = StyleSheet.create({
   page: { padding: 32, fontFamily: "Helvetica" },
   header: { textAlign: "center", marginBottom: 24 },
@@ -105,6 +104,7 @@ export default function UserManagementPanel() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [editingQuotation, setEditingQuotation] = useState<any | null>(null);
  
   useEffect(() => {
     setLoading(true)
@@ -300,9 +300,13 @@ export default function UserManagementPanel() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                    navigate(`/home/quotes/edit/${quotation.id}`); // quotation es la fila actual
+                                  }}
+                              >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Editar
+                                editar
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <FileScan className="mr-2 h-4 w-4" />

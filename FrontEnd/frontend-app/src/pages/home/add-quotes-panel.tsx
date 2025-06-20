@@ -7,8 +7,8 @@ import { CalendarIcon, FileText, User, DollarSign, MessageSquare, CheckCircle, X
 import { format, addDays } from "date-fns"
 import { es } from "date-fns/locale"
 import axios from "axios"
-import { useNavigate } from "react-router-dom"
-
+import { useNavigate, useParams } from "react-router-dom"
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
-interface CotizacionData {
+export interface CotizacionData {
   cliente: {
     nombre: string
     empresa: string
@@ -30,7 +30,6 @@ interface CotizacionData {
   fechaVencimiento: Date | undefined
   servicio: string
   precio: string
-  honorarios: string
   comentarios: string
   queHaremos: string
   queNoIncluye: string
@@ -47,8 +46,19 @@ const servicios = [
   "Otros",
 ]
 
-export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
+export default function CotizacionPanel(
+  {
+  onClose,
+  initialData,
+  mode = "crear"
+}: {
+  onClose?: () => void,
+  initialData?: Partial<CotizacionData> & { id?: number },
+  mode?: "crear" | "editar"
+}
+) {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [ultimoGuardado, setUltimoGuardado] = useState<Date | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [cotizacion, setCotizacion] = useState<CotizacionData>({
@@ -61,7 +71,6 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
     fechaVencimiento: undefined,
     servicio: "",
     precio: "",
-    honorarios: "",
     comentarios: "",
     queHaremos: "",
     queNoIncluye: "",
@@ -69,6 +78,47 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
   const [vencimientoTipo, setVencimientoTipo] = useState<string>(""); // "3", "7", "15", "otro"
   const [servicioPersonalizado, setServicioPersonalizado] = useState("");
   const [servicioSelect, setServicioSelect] = useState<string>("");
+
+  useEffect(() => {
+    if (mode === "editar" && id) {
+      axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}`)
+        .then(res => {
+          const data = res.data;
+          setCotizacion({
+            cliente: {
+              nombre: data.nombre_cliente || "",
+              empresa: "", // Ajusta si tienes empresa en tu backend
+              email: data.email || "",
+              telefono: data.telefono || "",
+            },
+            fechaVencimiento: data.fecha_vencimiento ? new Date(data.fecha_vencimiento) : undefined,
+            servicio: data.servicio || "",
+            precio: data.precio?.toString() || "",
+            comentarios: data.comentarios || "",
+            queHaremos: data.detalle_servicio || "",
+            queNoIncluye: data.exclusiones || "",
+          });
+          setServicioSelect(data.servicio || "");
+        })
+        .catch(() => alert("Error al cargar la cotización"));
+    } else if (initialData) {
+      setCotizacion({
+        cliente: {
+          nombre: initialData.cliente?.nombre || "",
+          empresa: initialData.cliente?.empresa || "",
+          email: initialData.cliente?.email || "",
+          telefono: initialData.cliente?.telefono || "",
+        },
+        fechaVencimiento: initialData.fechaVencimiento ? new Date(initialData.fechaVencimiento) : undefined,
+        servicio: initialData.servicio || "",
+        precio: initialData.precio || "",
+        comentarios: initialData.comentarios || "",
+        queHaremos: initialData.queHaremos || "",
+        queNoIncluye: initialData.queNoIncluye || "",
+      });
+      setServicioSelect(initialData.servicio || "");
+    }
+  }, [mode, id, initialData]);
 
   const handleClienteChange = (field: keyof CotizacionData["cliente"], value: string) => {
     setCotizacion((prev) => ({
@@ -105,8 +155,11 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
       exclusiones: cotizacion.queNoIncluye,
     };
     try {
-      await axios.post("http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones", payload);
-      // Puedes mostrar un mensaje de éxito aquí si quieres
+      if (mode === "editar" && id) {
+        await axios.put(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}`, payload);
+      } else {
+        await axios.post("http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones", payload);
+      }
       if (onClose) onClose();
       else navigate("/home/quotes");
     } catch (error) {
@@ -133,7 +186,9 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
     <div className="min-h-screen bg-gray-50 p-4 pb-20">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Crear Cotización</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {mode === "editar" ? "Editar Cotización" : "Crear Cotización"}
+          </h1>
           <p className="text-gray-600 mt-2">Completa los campos necesarios para crear una nueva cotización</p>
         </div>
 
@@ -295,7 +350,7 @@ export default function CotizacionPanel({ onClose }: { onClose?: () => void }) {
                         id="precio"
                         type="number"
                         step="0.01"
-                        min="0"
+                        min="0" 
                         placeholder="S/ 1,500.00"
                         value={cotizacion.precio}
                         onChange={(e) => handleFieldChange("precio", e.target.value)}
