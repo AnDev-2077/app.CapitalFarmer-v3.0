@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Scale, Mail, Lock, Eye, EyeOff, User, Phone } from "lucide-react"
-import { useAuth } from "@/context/AuthContext"
 
 import { useNavigate } from "react-router-dom"
+
+import { useAuth } from "@/context/AuthContext";
 
 export default function LawFirmAuth() {
 
   const navigate = useNavigate()
-  const { login: authLogin } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
@@ -27,6 +27,8 @@ export default function LawFirmAuth() {
   const [telefono, setTelefono] = useState("")
   const [correo, setCorreo] = useState("")
   const [contrasena, setContrasena] = useState("")
+
+  const { login: authLogin } = useAuth();
 
   // Función para manejar el registro de usuarios
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -70,9 +72,9 @@ export default function LawFirmAuth() {
       });
       if (!response.ok) throw new Error("Correo o contraseña incorrectos");
       const result = await response.json();
-      // Guardar token y cargar usuario globalmente
+      // Aquí debe estar el token: result.access_token
       if (result && result.access_token) {
-        await authLogin(result.access_token);
+        await authLogin(result.access_token); // Esto guarda el token y carga el usuario en el contexto
         alert("¡Inicio de sesión exitoso!");
         navigate("/home");
       } else {

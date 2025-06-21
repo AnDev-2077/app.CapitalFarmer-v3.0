@@ -4,6 +4,9 @@ from .routes import auth
 from .routes import users
 from .database import Base, engine
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 # Crear tablas
 Base.metadata.create_all(bind=engine)
 
@@ -16,6 +19,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def root():
+    return {"message": "Server ready"}
 
 # Registrar rutas
 app.include_router(auth.router, prefix="/capitalfarmer.co/api/v1")

@@ -3,6 +3,7 @@
 import React from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 import {
   LayoutDashboard,
@@ -105,24 +106,63 @@ const navigationItems = [
 ]
 
 export function AdminSidebar({ ...props }) {
-
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const [user, setUser] = useState<{ nombre: string; correo: string } | null>(null);
+  // Ejemplo de visibilidad por rol
+  const visibleNavigationItems = navigationItems.filter(item => {
+  // Si es Administrador (AD), ve todo
+  if (user?.rol_nombre === "Administrador (AD)") {
+    return true;
+  }
 
-  // Cargar el usuario desde localStorage al montar el componente
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  // Ejemplo: Solo los asesores legales pueden ver "Asesoría Legal"
+  if (item.title === "Asesoría Legal") {
+    return [
+      "Asesor Legal Capital (AS)",
+      "Asesor Legal Farmer (AS)",
+      "Asesor Legal Trimex (AS)"
+    ].includes(user?.rol_nombre ?? "");
+  }
+
+  // Ejemplo: Solo los colaboradores pueden ver "Interno"
+  if (item.title === "Interno") {
+    return [
+      "Colaborador Capital (CO)",
+      "Colaborador Farmer (CO)",
+      "Colaborador Trimex (CO)"
+    ].includes(user?.rol_nombre ?? "");
+  }
+
+  // Ejemplo: Solo los clientes pueden ver "Soporte"
+  if (item.title === "Soporte") {
+    return user?.rol_nombre === "Cliente";
+  }
+
+  // Ejemplo: Solo los devs pueden ver "Bots"
+  if (item.title === "Bots") {
+    return user?.rol_nombre === "Dev";
+  }
+
+  // Ejemplo: Solo empleados pueden ver "Archivos"
+  if (item.title === "Archivos") {
+    return user?.rol_nombre === "Empleado";
+  }
+
+  // Ejemplo: Solo admin puede ver "Usuarios" (ya cubierto arriba, pero puedes dejarlo)
+  if (item.title === "Usuarios") {
+    return false; // Ya lo ve el admin arriba
+  }
+
+  // El resto es visible para todos
+  return true;
+});
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    logout();
     navigate("/");
-  }
+  };
 
   return (
     <Sidebar className="border-r border-slate-200 bg-white" {...props}>
@@ -150,7 +190,7 @@ export function AdminSidebar({ ...props }) {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {navigationItems.map((item) => (
+              {visibleNavigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -158,7 +198,6 @@ export function AdminSidebar({ ...props }) {
                       "h-10 justify-start px-3 hover:bg-slate-100",
                       location.pathname === item.url && "bg-slate-100",
                     )}
-                    //onClick={() => setActiveItem(item.title)}
                   >
                     <Link to={item.url} className="flex items-center gap-3">
                       <item.icon className={cn("size-5", item.color)} />
