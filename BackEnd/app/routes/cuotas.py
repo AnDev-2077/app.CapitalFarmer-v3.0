@@ -5,11 +5,15 @@ from ..models.cotizacion import Cotizacion
 from ..models.cuota import Cuota
 from ..schemas.cuota import CuotaCreate, CuotaOut
 from ..schemas.cotizacionconcuotas import CotizacionConCuotasCreate
+from ..schemas.quotationout import QuotationOut
 from datetime import datetime
 from app.routes.auth import get_current_user
 from app.models.user import Usuario
+from typing import Optional
 
 router = APIRouter()
+
+
 
 def get_db():
     db = SessionLocal()
@@ -72,3 +76,15 @@ def crear_cotizacion_con_cuotas(data: CotizacionConCuotasCreate, db: Session = D
             db.add(nueva_cuota)
         db.commit()
     return {"cotizacion_id": nueva_cotizacion.id}
+
+@router.get("/cotizaciones/{cotizacion_id}/con-cuotas", response_model=QuotationOut)
+def obtener_cotizacion_con_cuotas(
+    cotizacion_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    cotizacion = db.query(Cotizacion).filter(Cotizacion.id == cotizacion_id).first()
+    if not cotizacion:
+        raise HTTPException(status_code=404, detail="Cotización no encontrada")
+    # Las cuotas ya están incluidas por la relación en el modelo y el esquema QuotationOut
+    return cotizacion

@@ -171,7 +171,7 @@ export default function CotizacionPanel(
       setMode("editar");
       (async () => {
         try {
-          const res = await axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}`, {
+          const res = await axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           const data = res.data;
@@ -180,9 +180,7 @@ export default function CotizacionPanel(
             ? parseDateAsLocal(data.fecha_vencimiento)
             : undefined;
           // Obtener cuotas asociadas
-          const cuotasRes = await axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cuotas?cotizacion_id=${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          console.log("Cuotas recibidas del backend:", data.cuotas);
           // --- Lógica de sincronización como el primer código ---
           // Servicio
           let servicioSelectValue = "";
@@ -213,7 +211,7 @@ export default function CotizacionPanel(
           setVencimientoTipo(vencimientoTipoValue);
 
           // Pagos divididos
-          const cuotas = cuotasRes.data.map((cuota: any) => ({
+          const cuotas = (data.cuotas || []).map((cuota: any) => ({
             nombre: cuota.nombre_cuota,
             porcentaje: cuota.porcentaje,
             cantidad: cuota.monto.toString(),

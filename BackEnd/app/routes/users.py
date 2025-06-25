@@ -120,7 +120,7 @@ def leer_cotizaciones(db: Session = Depends(get_db), current_user: dict = Depend
     return cotizaciones_out
 
 #/cotizaciones/{cotizacion_id} ruta solo para prueba - 
-#reemplasar cunado se implemeten funciones de (contexto de reload y el modar de hero ui)
+#reemplasar cunado se implemeten funciones de (contexto de reload - o la ruta para consultar con cuotas)
 
 @router.get("/cotizaciones/{cotizacion_id}", response_model=QuotationOut)
 def obtener_cotizacion_por_id(cotizacion_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
