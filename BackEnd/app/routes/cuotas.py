@@ -5,6 +5,9 @@ from ..models.cotizacion import Cotizacion
 from ..models.cuota import Cuota
 from ..schemas.cuota import CuotaCreate, CuotaOut
 from ..schemas.cotizacionconcuotas import CotizacionConCuotasCreate
+from datetime import datetime
+from app.routes.auth import get_current_user
+from app.models.user import Usuario
 
 router = APIRouter()
 
@@ -37,11 +40,27 @@ def obtener_cuota(cuota_id: int, db: Session = Depends(get_db)):
 def listar_cuotas(db: Session = Depends(get_db)):
     return db.query(Cuota).all()
 
+def generar_codigo_cotizacion(id_cotizacion: int, nombre_usuario: str, fecha: datetime = None) -> str:
+    now = fecha or datetime.now()
+    mes = now.month
+    dia = now.day
+    inicial = nombre_usuario[0].upper() if nombre_usuario else "X"
+    return f"COT-{mes}{dia}{id_cotizacion}{inicial}FCT"
+
 @router.post("/cotizaciones-con-cuotas")
-def crear_cotizacion_con_cuotas(data: CotizacionConCuotasCreate, db: Session = Depends(get_db)):
+def crear_cotizacion_con_cuotas(data: CotizacionConCuotasCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    usuario = db.query(Usuario).filter(Usuario.correo == current_user.get("sub")).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
     cotizacion_data = data.cotizacion.dict()
     nueva_cotizacion = Cotizacion(**cotizacion_data)
     db.add(nueva_cotizacion)
+    db.commit()
+    db.refresh(nueva_cotizacion)
+
+    codigo = generar_codigo_cotizacion(nueva_cotizacion.id, usuario.nombre)
+    nueva_cotizacion.codigo_cotizacion = codigo
     db.commit()
     db.refresh(nueva_cotizacion)
 

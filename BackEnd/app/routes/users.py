@@ -11,6 +11,7 @@ from ..models.cotizacion import Cotizacion
 from ..schemas.quotationout import QuotationOut
 from ..schemas.updatequotation import CotizacionUpdate
 from ..routes.auth import get_current_user
+from ..schemas.cotizacionconcuotas import CotizacionConCuotasCreate
 
 router = APIRouter()
 
