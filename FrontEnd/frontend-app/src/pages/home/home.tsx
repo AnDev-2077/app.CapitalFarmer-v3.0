@@ -4,6 +4,9 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import ControlPanel from "@/pages/home/control-panel"
 import UserManagementPanel from "@/pages/home/users-panel"
 import QuotationManagementPanel from "@/pages/home/quotes-panel"
+import AddEditQuotesPanel from "@/pages/quotes-panels/add-edit-quotes-panel"
+import DetailsQuotesPanel from "@/pages/quotes-panels/quotes-details-panel"
+import ExportQuotesPanel from "@/pages/quotes-panels/export-quotes-panel"
 
 export default function Home() {
   return (
@@ -15,6 +18,11 @@ export default function Home() {
             <Route path="/" element={<ControlPanel />} />
             <Route path="/users" element={<UserManagementPanel />} />
             <Route path="/quotes" element={<QuotationManagementPanel />} />
+            <Route path="/quotes/add" element={<AddEditQuotesPanel />} />
+            <Route path="/quotes/edit/:id" element={<AddEditQuotesPanel />} />
+            <Route path="/quotes/details/:id" element={<DetailsQuotesPanel />} />
+            <Route path="/quotes/export/:id" element={<ExportQuotesPanel />} />
+            
             {/* Agrega más rutas hijas aquí si tienes más paneles */}
           </Routes>
         </SidebarInset>

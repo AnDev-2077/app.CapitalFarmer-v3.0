@@ -73,7 +73,11 @@ export default function UserManagementPanel() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/roles")
+      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/roles", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
       .then((res) => setRoles(res.data))
       .catch(() => setRoles([]))
   }, [])
@@ -115,7 +119,11 @@ export default function UserManagementPanel() {
 
   const handleDeleteUser = (userId: number) => {
   axios
-    .delete(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${userId}`)
+    .delete(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
     .then(() => {
       setUsers((prev) => prev.filter((user) => user.id !== userId))
       toast.success("Usuario eliminado correctamente")
@@ -134,7 +142,11 @@ export default function UserManagementPanel() {
 
     if (isEditMode && editingUserId) {
       axios
-      .put(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${editingUserId}`, { ...formData })
+      .put(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${editingUserId}`, { ...formData }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
       .then((res) => {
         setUsers((prev) =>
           prev.map((user) => (user.id === editingUserId ? res.data : user))
@@ -147,7 +159,11 @@ export default function UserManagementPanel() {
       .post("http://127.0.0.1:8000/capitalfarmer.co/api/v1/registro", {
         ...formData,
         contrasena: "123456"
-      })
+      }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
       .then((res) => {
         setUsers((prev) => [...prev, res.data]);
         toast.success(`${formData.nombre} ${formData.apellido} ha sido creado exitosamente como ${formData.rol_id}`);
@@ -310,7 +326,7 @@ export default function UserManagementPanel() {
                 </Select>
                 <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
                   <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleCreateUser}>
+                    <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={handleCreateUser}>
                       <Plus className="mr-2 h-4 w-4" />
                       Agregar Usuario
                     </Button>
