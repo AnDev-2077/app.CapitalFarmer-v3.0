@@ -10,6 +10,7 @@
       "@/*": ["./src/*"]
 
     },
-    "typeRoots": ["src/types", "node_modules/@types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "lib": ["DOM", "ES2021"]
   }
 }

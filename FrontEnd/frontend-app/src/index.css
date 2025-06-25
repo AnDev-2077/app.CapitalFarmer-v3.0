@@ -119,3 +119,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Para asegurar que los colores de fondo se impriman */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

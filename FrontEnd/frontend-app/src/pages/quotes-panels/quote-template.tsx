@@ -1,11 +1,10 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { Download } from "lucide-react"
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+
 import {
   Table,
   TableBody,
@@ -178,14 +177,6 @@ export default function QuotesTemplate({ quotation, pagosDivididos }: { quotatio
             <div className="mb-8">
               <p className="text-sm text-center">Atentamente:</p>
               <h3 className="text-lg font-semibold text-center mb-4">FARMER & CAPITAL ABOGADOS</h3>
-            </div>
-
-            {/* Download Button */}
-            <div className="flex justify-center">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2">
-                <Download className="w-4 h-4 mr-2" />
-                Descargar
-              </Button>
             </div>
           </CardContent>
         </Card>
