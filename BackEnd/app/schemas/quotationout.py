@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date, datetime
+from .cuota import CuotaOut
 
 class QuotationOut(BaseModel):
     id: int
@@ -16,6 +17,7 @@ class QuotationOut(BaseModel):
     exclusiones: Optional[str]
     estado: Optional[str]
     fecha_creacion: Optional[datetime]
+    cuotas: Optional[list[CuotaOut]] = None
 
     class Config:
         orm_mode = True

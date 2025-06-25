@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Date, Text, DECIMAL, TIMESTAMP, 
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
+from .cuota import Cuota
 
 usuario_cotizacion = Table(
     'usuario_cotizacion', Base.metadata,
@@ -26,3 +27,4 @@ class Cotizacion(Base):
     estado = Column(String(50), nullable=False, default='Pendiente')
     fecha_creacion = Column(TIMESTAMP, nullable=True, server_default=func.current_timestamp())
     usuarios = relationship('Usuario', secondary=usuario_cotizacion, back_populates='cotizaciones')
+    cuotas = relationship('Cuota', back_populates='cotizacion', cascade='all, delete-orphan')

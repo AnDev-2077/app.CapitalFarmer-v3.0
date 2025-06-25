@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import auth
 from .routes import users
+from .routes import cuotas
 from .database import Base, engine
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,3 +28,4 @@ def root():
 # Registrar rutas
 app.include_router(auth.router, prefix="/capitalfarmer.co/api/v1")
 app.include_router(users.router, prefix="/capitalfarmer.co/api/v1")
+app.include_router(cuotas.router, prefix="/capitalfarmer.co/api/v1")
