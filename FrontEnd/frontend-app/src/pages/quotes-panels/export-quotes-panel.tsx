@@ -15,40 +15,46 @@ export default function ExportQuotesPanel() {
   const { token } = useAuth()
   const { id } = useParams()
   const [cotizacion, setCotizacion] = useState<any>(null)
+  const [pagosDivididos, setPagosDivididos] = useState(false)
 
-  useEffect(() => {
-    if (id) {
-      axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-        .then(res => {
-          const data = res.data
-          const fechaVencimiento = data.fecha_vencimiento
-            ? parseDateAsLocal(data.fecha_vencimiento)
-            : undefined
-          setCotizacion({
-            cliente: {
-              nombre: data.nombre_cliente || "",
-              email: data.email || "",
-              telefono: data.telefono || "",
-            },
-            fechaVencimiento,
-            servicio: data.servicio || "",
-            precio: data.precio?.toString() || "",
-            comentarios: data.comentarios || "",
-            queHaremos: data.detalle_servicio || "",
-            queNoIncluye: data.exclusiones || "",
-            pagosDivididos: data.pagos_divididos || [
-              { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "Al recibir" },
-              { nombre: "Pago 2", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
-            ],
-          })
+    useEffect(() => {
+      if (id) {
+        axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         })
-        .catch(() => alert("Error al cargar la cotización"))
-    }
-  }, [id, token])
+          .then(res => {
+            const data = res.data
+            const fechaVencimiento = data.fecha_vencimiento
+              ? parseDateAsLocal(data.fecha_vencimiento)
+              : undefined
+            // Mapear cuotas si existen
+            const cuotas = (data.cuotas || []).map((cuota: any) => ({
+              nombre: cuota.nombre_cuota,
+              porcentaje: cuota.porcentaje,
+              cantidad: cuota.monto.toString(),
+              fechaVencimiento: cuota.fecha_vencimiento || "",
+            }))
+            setCotizacion({
+              cliente: {
+                nombre: data.nombre_cliente || "",
+                email: data.email || "",
+                telefono: data.telefono || "",
+              },
+              fechaVencimiento,
+              servicio: data.servicio || "",
+              precio: data.precio?.toString() || "",
+              comentarios: data.comentarios || "",
+              queHaremos: data.detalle_servicio || "",
+              queNoIncluye: data.exclusiones || "",
+              pagosDivididos: cuotas,
+            })
+            setPagosDivididos(cuotas.length > 0)
+          })
+          .catch(() => alert("Error al cargar la cotización"))
+      }
+    }, [id, token])
 
 
 
@@ -60,7 +66,7 @@ export default function ExportQuotesPanel() {
           <div id="quotation-pdf">
             <QuoteTemplate
               quotation={cotizacion}
-              pagosDivididos={cotizacion.pagosDivididos && cotizacion.pagosDivididos.length > 0}
+              pagosDivididos={pagosDivididos}
             />
           </div>
         ) : (
