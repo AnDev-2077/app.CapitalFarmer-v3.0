@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet} from '@react-pdf/renderer';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -19,12 +19,12 @@ import { es } from "date-fns/locale";
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Times-Roman', // Usa una fuente estándar como Times New Roman
     fontSize: 10,
     color: '#333333',
   },
   header: {
-    textAlign: 'right',
+    textAlign: 'center',
     color: '#a0a0a0',
     fontSize: 9,
     marginBottom: 20,
@@ -32,8 +32,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2c3e50', // Un azul oscuro casi negro
+    color: '#2c3e50',
     marginBottom: 25,
+    textAlign: 'center',
   },
   clientInfoContainer: {
     marginBottom: 30,
@@ -228,7 +229,7 @@ return (
       )}
       
       {/* Sección: ¿Qué haremos por usted? */}
-      <View style={styles.section}>
+      <View style={styles.section} wrap={false}>
         <Text style={styles.sectionTitle}>¿Qué haremos por usted?</Text>
         <View style={styles.sectionContent}>
           <Text>{cotizacion.queHaremos}</Text>
@@ -236,10 +237,28 @@ return (
       </View>
       
       {/* Sección: ¿Qué no incluye la cotización? */}
-      <View style={styles.section}>
+      <View style={styles.section} wrap={false}>
         <Text style={styles.sectionTitle}>¿Qué no icluye la cotización?</Text>
         <View style={styles.sectionContent}>
           <Text>{cotizacion.queNoIncluye}</Text>
+        </View>
+      </View>
+      {/* Sección: Nota */}
+      <View style={styles.section} wrap={false}>
+        <Text style={styles.sectionTitle}>¿Cuánto cuesta el servicio (Honorarios)?</Text>
+        <View style={styles.sectionContent}>
+          <Text>- Abono inicial: S/{cotizacion.precio}</Text>
+          <Text>Este precio incluye la emisión de un Recibo por Honorarios de un abogado del estudio, 
+            pero si desea boleta o factura del estudio deberá añadir el 18% de IGV</Text>
+        </View>
+      </View>
+
+      {/* Sección: Medios de pago */}
+      <View style={styles.section} wrap={false}>
+        <Text style={styles.sectionTitle}>¿Cómo puedo pagar los Honorarios?</Text>
+        <View style={styles.sectionContent}>
+          <Text>- Abono inicial: S/{cotizacion.precio}</Text>
+          <Text>- Medios de pago: Transferencia, Yape o Plin</Text>
         </View>
       </View>
       

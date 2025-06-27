@@ -364,7 +364,6 @@ export default function CotizacionPanel(
         comentarios: cotizacion.comentarios,
         detalle_servicio: cotizacion.queHaremos,
         exclusiones: cotizacion.queNoIncluye,
-        // estado: ... (si lo manejas)
       },
       cuotas: pagosDivididos
         ? tablaPagos.map((pago) => ({
@@ -372,7 +371,6 @@ export default function CotizacionPanel(
             porcentaje: Number(pago.porcentaje),
             monto: Number(pago.cantidad),
             fecha_vencimiento: pago.fechaVencimiento || null,
-            // estado_pago: pago.estado_pago (si lo usas)
           }))
         : [],
     };
@@ -395,7 +393,7 @@ export default function CotizacionPanel(
       if (onClose) onClose();
       else navigate("/home/quotes");
     } catch {
-      // Handle error without using the variable
+
       alert("Error al guardar la cotización");
     }
   }

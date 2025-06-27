@@ -86,7 +86,7 @@ export default function ExportQuotesPanel() {
               {cotizacion && cotizacion.cliente && cotizacion.servicio && (
                 <PDFDownloadLink
                   document={<QuotePDF cotizacion={cotizacion} />}
-                  fileName="cotizacion_servicios_legales.pdf"
+                  fileName={`${cotizacion.codigoCotizacion}_${cotizacion.cliente.nombre}.pdf`}
                   style={{ textDecoration: 'none' }}
                 >
                   {({ loading, error }) => (

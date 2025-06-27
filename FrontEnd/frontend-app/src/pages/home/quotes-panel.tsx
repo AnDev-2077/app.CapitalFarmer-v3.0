@@ -75,7 +75,6 @@ export default function QuotesManagementPanel() {
     const matchesSearch =
       quotation.nombre_cliente?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quotation.servicio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quotation.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quotation.fecha_vencimiento?.toString().includes(searchTerm) ||
       quotation.estado?.toLowerCase().includes(searchTerm.toLowerCase())
 

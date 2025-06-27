@@ -14,8 +14,6 @@ from typing import Optional
 
 router = APIRouter()
 
-
-
 def get_db():
     db = SessionLocal()
     try:
@@ -97,6 +95,10 @@ def actualizar_cotizacion(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
+    usuario = db.query(Usuario).filter(Usuario.correo == current_user.get("sub")).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
     cotizacion_update = data.get("cotizacion", {})
     cuotas_update = data.get("cuotas", None)
     cotizacion = db.query(Cotizacion).filter(Cotizacion.id == cotizacion_id).first()
@@ -105,6 +107,10 @@ def actualizar_cotizacion(
     # Actualizar campos de la cotización
     for field, value in cotizacion_update.items():
         setattr(cotizacion, field, value)
+    cotizacion.codigo_cotizacion = generar_codigo_cotizacion(
+        cotizacion.id,
+        usuario.nombre
+    )
     db.commit()
     db.refresh(cotizacion)
     # Lógica avanzada para cuotas
