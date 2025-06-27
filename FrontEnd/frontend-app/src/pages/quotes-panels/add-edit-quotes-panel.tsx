@@ -91,7 +91,7 @@ export default function CotizacionPanel(
 
   const [pagosDivididos, setPagosDivididos] = useState(false);
 
-  
+  const API_URL = import.meta.env.VITE_API_URL;
   
 
   const agregarPago = () => {
@@ -171,8 +171,11 @@ export default function CotizacionPanel(
       setMode("editar");
       (async () => {
         try {
-          const res = await axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, {
-            headers: { Authorization: `Bearer ${token}` }
+          const res = await axios.get(`${API_URL}/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'ngrok-skip-browser-warning': 'true'
+            }
           });
           const data = res.data;
           setCodigoCotizacion(data.codigo_cotizacion || "COT-XXXXXXFCT");
@@ -373,17 +376,19 @@ export default function CotizacionPanel(
     };
     try {
       if (mode === "editar" && id) {
-        await axios.put(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}`, payload, {
+        await axios.put(`${API_URL}/capitalfarmer.co/api/v1/cotizaciones/${id}`, payload, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
         }
       });
       } else {
-        await axios.post("http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones-con-cuotas", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+        await axios.post(`${API_URL}/capitalfarmer.co/api/v1/cotizaciones-con-cuotas`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
       }
       if (onClose) onClose();
       else navigate("/home/quotes");

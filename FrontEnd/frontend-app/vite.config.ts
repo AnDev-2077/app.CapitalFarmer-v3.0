@@ -10,4 +10,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    allowedHosts: [
+      'http://localhost:5173/', //host frontend de ngrok
+      'localhost'
+    ]
+  }
 })

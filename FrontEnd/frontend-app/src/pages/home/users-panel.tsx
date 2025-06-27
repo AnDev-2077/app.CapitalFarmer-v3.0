@@ -58,12 +58,15 @@ export default function UserManagementPanel() {
 
   const { token } = useAuth();
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     setLoading(true)
     axios
-      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios" , {
+      .get(`${API_URL}/capitalfarmer.co/api/v1/usuarios` , {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
         })
       .then((res) => setUsers(res.data))
@@ -73,9 +76,10 @@ export default function UserManagementPanel() {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/roles", {
+      .get(`${API_URL}/capitalfarmer.co/api/v1/roles`, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
         })
       .then((res) => setRoles(res.data))
@@ -117,11 +121,13 @@ export default function UserManagementPanel() {
     setDialogOpen(true)
   }
 
+
   const handleDeleteUser = (userId: number) => {
   axios
-    .delete(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${userId}`, {
+    .delete(`${API_URL}/capitalfarmer.co/api/v1/usuarios/${userId}`, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
         })
     .then(() => {
@@ -142,9 +148,10 @@ export default function UserManagementPanel() {
 
     if (isEditMode && editingUserId) {
       axios
-      .put(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/${editingUserId}`, { ...formData }, {
+      .put(`${API_URL}/capitalfarmer.co/api/v1/usuarios/${editingUserId}`, { ...formData }, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
         })
       .then((res) => {
@@ -156,12 +163,13 @@ export default function UserManagementPanel() {
       .catch(() => toast.error("Error al actualizar usuario"));
     } else {
       axios
-      .post("http://127.0.0.1:8000/capitalfarmer.co/api/v1/registro", {
+      .post(`${API_URL}/capitalfarmer.co/api/v1/registro`, {
         ...formData,
         contrasena: "123456"
       }, {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true'
           }
         })
       .then((res) => {

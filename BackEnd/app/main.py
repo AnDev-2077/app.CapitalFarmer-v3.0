@@ -7,15 +7,20 @@ from .database import Base, engine
 
 from fastapi.middleware.cors import CORSMiddleware
 
-
 # Crear tablas
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:5173",
+    "https://1f4d-181-64-57-64.ngrok-free.app",
+    "https://ae59-181-64-57-64.ngrok-free.app"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # O tu dominio
+    allow_origins=origins,  # O tu dominio
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

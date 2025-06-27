@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 import {
   Download,
-  Printer,
+  SquarePen,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import html2pdf from 'html2pdf.js';
 import axios from "axios"
 import QuoteTemplate from "@/pages/quotes-panels/quote-template"
 import { useAuth } from "@/context/AuthContext"
-// Función para parsear fecha como local (igual que en edición)
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import QuotePDF from '@/pages/quotes-panels/templates/basic-pdf-template';
 function parseDateAsLocal(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number)
   return new Date(year, month - 1, day, 12, 0, 0, 0)
@@ -22,12 +23,16 @@ export default function ExportQuotesPanel() {
   const { id } = useParams()
   const [cotizacion, setCotizacion] = useState<any>(null)
   const [pagosDivididos, setPagosDivididos] = useState(false)
+  const navigate = useNavigate();
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (id) {
-      axios.get(`http://127.0.0.1:8000/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, {
+      axios.get(`${API_URL}/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
         }
       })
         .then(res => {
@@ -37,12 +42,14 @@ export default function ExportQuotesPanel() {
             : undefined
           // Mapear cuotas si existen
           const cuotas = (data.cuotas || []).map((cuota: any) => ({
+            id: cuota.id,
             nombre: cuota.nombre_cuota,
             porcentaje: cuota.porcentaje,
             cantidad: cuota.monto.toString(),
             fechaVencimiento: cuota.fecha_vencimiento || "",
           }))
           setCotizacion({
+            id: data.id,
             codigoCotizacion: data.codigo_cotizacion || "",
             cliente: {
               nombre: data.nombre_cliente || "",
@@ -63,50 +70,6 @@ export default function ExportQuotesPanel() {
     }
   }, [id, token])
 
-  const datosCotizacion = cotizacion && {
-    codigoCotizacion: cotizacion.codigoCotizacion,
-    nombreCliente: cotizacion.cliente.nombre,
-    telefonoCliente: cotizacion.cliente.telefono,
-    emailCliente: cotizacion.cliente.email,
-    fechaCreacion: "25 de junio de 2025", // O usa una fecha real si la tienes
-    fechaCaducidad: cotizacion.fechaVencimiento,
-    servicioNombre: cotizacion.servicio,
-    servicioTotal: cotizacion.precio,
-    servicioDescripcion: cotizacion.queHaremos,
-    noIncluye: cotizacion.queNoIncluye
-  };
-
-  const generarPdf = async () => {
-    if (!datosCotizacion) return;
-    const response = await fetch('/html-templates/basic-quotation-template.html');
-    let plantillaHtml = await response.text();
-
-    Object.entries(datosCotizacion).forEach(([key, value]) => {
-      const regex = new RegExp(`{{${key.toUpperCase()}}}`, "g");
-      plantillaHtml = plantillaHtml.replace(regex, String(value ?? ""));
-    });
-
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = plantillaHtml;
-    document.body.appendChild(tempDiv);
-
-    // Espera 100ms para asegurar que el DOM se renderice
-    await new Promise(r => setTimeout(r, 100));
-
-    const opciones = {
-      margin: 1,
-      filename: 'cotizacion-servicios-legales.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    console.log(plantillaHtml);
-
-    await html2pdf().from(tempDiv).set(opciones).save();
-    document.body.removeChild(tempDiv);
-
-  };
   return (
     <div className="fixed inset-0 z-50 min-h-screen bg-gray-50 overflow-y-auto">
       <div className="bg-white border-b shadow-sm sticky top-0 z-10">
@@ -116,14 +79,28 @@ export default function ExportQuotesPanel() {
               <h2 className="text-lg font-semibold">Cotización de Servicios Legales</h2>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={generarPdf}>
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimir PDF
+              <Button variant="outline" size="sm" onClick={() => navigate(`/home/quotes/edit/${cotizacion.id}`)}>
+                <SquarePen className="h-4 w-4 mr-2"/>
+                Editar
               </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Descargar
-              </Button>
+              {cotizacion && cotizacion.cliente && cotizacion.servicio && (
+                <PDFDownloadLink
+                  document={<QuotePDF cotizacion={cotizacion} />}
+                  fileName="cotizacion_servicios_legales.pdf"
+                  style={{ textDecoration: 'none' }}
+                >
+                  {({ loading, error }) => (
+                    <Button variant="outline" size="sm" disabled={loading || !!error}>
+                      <Download className="h-4 w-4 mr-2" />
+                      {loading
+                        ? 'Generando PDF...'
+                        : error
+                          ? 'Error al generar PDF'
+                          : 'Descargar'}
+                    </Button>
+                  )}
+                </PDFDownloadLink>
+              )}
             </div>
           </div>
         </div>

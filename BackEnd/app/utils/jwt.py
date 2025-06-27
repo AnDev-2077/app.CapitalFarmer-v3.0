@@ -1,9 +1,9 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "tu_clave_secreta"
+SECRET_KEY = "gP#7@3R!kLp$W9f2QyZt%vJnB8xD"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 def crear_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()

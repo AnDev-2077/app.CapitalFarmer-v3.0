@@ -24,10 +24,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     if (token) {
-      axios.get("http://127.0.0.1:8000/capitalfarmer.co/api/v1/usuarios/me", {
-        headers: { Authorization: `Bearer ${token}` },
+      axios.get(`${API_URL}/capitalfarmer.co/api/v1/usuarios/me`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true' 
+        },
       })
         .then(res => setUser(res.data))
         .catch(() => {

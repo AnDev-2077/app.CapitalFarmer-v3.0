@@ -30,6 +30,8 @@ export default function LawFirmAuth() {
 
   const { login: authLogin } = useAuth();
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   // Función para manejar el registro de usuarios
   const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,7 +45,7 @@ export default function LawFirmAuth() {
     };
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/capitalfarmer.co/api/v1/registro", {
+      const response = await fetch(`${API_URL}/capitalfarmer.co/api/v1/registro`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -65,7 +67,7 @@ export default function LawFirmAuth() {
     };
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/capitalfarmer.co/api/v1/login", {
+      const response = await fetch(`${API_URL}/capitalfarmer.co/api/v1/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
