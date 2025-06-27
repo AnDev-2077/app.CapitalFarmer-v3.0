@@ -23,6 +23,7 @@ import QuoteSchema from "@/pages/quotes-panels/quote-template"
 import { useAuth } from "@/context/AuthContext";
 
 export interface CotizacionData {
+  id?: number;
   codigoCotizacion?: string;
   cliente: {
     nombre: string
@@ -80,7 +81,7 @@ export default function CotizacionPanel(
     queHaremos: "",
     queNoIncluye: "",
     pagosDivididos: [
-      { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "Al recibir" },
+      { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
       { nombre: "Pago 2", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
     ],
   })
@@ -154,7 +155,7 @@ export default function CotizacionPanel(
   };
 
   const [tablaPagos, setTablaPagos] = useState([
-    { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "Al recibir" },
+    { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
     { nombre: "Pago 2", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
   ]);
 
@@ -226,12 +227,13 @@ export default function CotizacionPanel(
           } else {
             setPagosDivididos(false);
             setTablaPagos([
-              { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "Al recibir" },
+              { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
               { nombre: "Pago 2", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
             ]);
           }
 
           setCotizacion({
+            id: data.id,
             codigoCotizacion: data.codigo_cotizacion || "COT-XXXXXXFCT",
             cliente: {
               nombre: data.nombre_cliente || "",
@@ -264,7 +266,7 @@ export default function CotizacionPanel(
         queHaremos: initialData.queHaremos || "",
         queNoIncluye: initialData.queNoIncluye || "",
         pagosDivididos: initialData.pagosDivididos || [
-          { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "Al recibir" },
+          { nombre: "Pago 1", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
           { nombre: "Pago 2", porcentaje: 50, cantidad: "", fechaVencimiento: "" },
         ],
       });
@@ -275,7 +277,7 @@ export default function CotizacionPanel(
   useEffect(() => {
     if (pagosDivididos) {
       setTablaPagos([
-        { nombre: "Pago 1", porcentaje: 50, cantidad: calcularCantidadPago(cotizacion.precio, 50), fechaVencimiento: "Al recibir" },
+        { nombre: "Pago 1", porcentaje: 50, cantidad: calcularCantidadPago(cotizacion.precio, 50), fechaVencimiento: "" },
         { nombre: "Pago 2", porcentaje: 50, cantidad: calcularCantidadPago(cotizacion.precio, 50), fechaVencimiento: "" },
       ]);
     }
@@ -376,7 +378,7 @@ export default function CotizacionPanel(
     };
     try {
       if (mode === "editar" && id) {
-        await axios.put(`${API_URL}/capitalfarmer.co/api/v1/cotizaciones/${id}`, payload, {
+        await axios.put(`${API_URL}/capitalfarmer.co/api/v1/cotizaciones/${id}/con-cuotas`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           'ngrok-skip-browser-warning': 'true'

@@ -6,6 +6,7 @@ from ..models.cuota import Cuota
 from ..schemas.cuota import CuotaCreate, CuotaOut
 from ..schemas.cotizacionconcuotas import CotizacionConCuotasCreate
 from ..schemas.quotationout import QuotationOut
+from ..schemas.updatequotation import CotizacionUpdate
 from datetime import datetime
 from app.routes.auth import get_current_user
 from app.models.user import Usuario
@@ -87,4 +88,48 @@ def obtener_cotizacion_con_cuotas(
     if not cotizacion:
         raise HTTPException(status_code=404, detail="Cotización no encontrada")
     # Las cuotas ya están incluidas por la relación en el modelo y el esquema QuotationOut
+    return cotizacion
+
+@router.put("/cotizaciones/{cotizacion_id}/con-cuotas", response_model=QuotationOut)
+def actualizar_cotizacion(
+    cotizacion_id: int,
+    data: dict,  # Espera un JSON con campos de cotizacion y opcionalmente 'cuotas'
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    cotizacion_update = data.get("cotizacion", {})
+    cuotas_update = data.get("cuotas", None)
+    cotizacion = db.query(Cotizacion).filter(Cotizacion.id == cotizacion_id).first()
+    if not cotizacion:
+        raise HTTPException(status_code=404, detail="Cotización no encontrada")
+    # Actualizar campos de la cotización
+    for field, value in cotizacion_update.items():
+        setattr(cotizacion, field, value)
+    db.commit()
+    db.refresh(cotizacion)
+    # Lógica avanzada para cuotas
+    if cuotas_update is not None:
+        cuotas_existentes = {c.id: c for c in db.query(Cuota).filter(Cuota.cotizacion_id == cotizacion_id).all()}
+        ids_recibidos = set()
+        for cuota in cuotas_update:
+            cuota_id = cuota.get("id")
+            if cuota_id and cuota_id in cuotas_existentes:
+                # Actualizar cuota existente
+                cuota_obj = cuotas_existentes[cuota_id]
+                for field, value in cuota.items():
+                    if field != "id":
+                        setattr(cuota_obj, field, value)
+                ids_recibidos.add(cuota_id)
+            else:
+                # Crear nueva cuota
+                cuota_data = cuota.copy()
+                cuota_data["cotizacion_id"] = cotizacion_id
+                cuota_data.pop("id", None)
+                nueva_cuota = Cuota(**cuota_data)
+                db.add(nueva_cuota)
+        # Eliminar cuotas que no están en la lista recibida
+        for cuota_id, cuota_obj in cuotas_existentes.items():
+            if cuota_id not in ids_recibidos:
+                db.delete(cuota_obj)
+        db.commit()
     return cotizacion
