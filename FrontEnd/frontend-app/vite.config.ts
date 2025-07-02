@@ -11,8 +11,7 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: [
-      'http://localhost:5173/', //host frontend de ngrok
+    allowedHosts: [ //host frontend de ngrok
       'localhost'
     ]
   }

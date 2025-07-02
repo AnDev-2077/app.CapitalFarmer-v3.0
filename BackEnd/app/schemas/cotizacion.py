@@ -3,8 +3,8 @@ from typing import Optional
 from datetime import date
 
 class CotizacionCreate(BaseModel):
+    cliente_id: Optional[int] = None
     codigo_cotizacion: Optional[str] = None
-    nombre_cliente: str
     email: Optional[str] = None
     telefono: Optional[str] = None
     fecha_vencimiento: Optional[date] = None

@@ -12,7 +12,7 @@ class Rol(Base):
 class Usuario(Base):
     __tablename__ = "usuarios"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String(50), nullable=False)
     apellido = Column(String(50), nullable=False)
     telefono = Column(String(20))

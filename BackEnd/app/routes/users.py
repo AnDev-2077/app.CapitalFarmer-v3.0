@@ -12,6 +12,8 @@ from ..schemas.quotationout import QuotationOut
 from ..schemas.updatequotation import CotizacionUpdate
 from ..routes.auth import get_current_user
 from ..schemas.cotizacionconcuotas import CotizacionConCuotasCreate
+from ..models.cliente import Cliente
+from ..schemas.cliente import ClienteCreate, ClienteOut
 
 router = APIRouter()
 
@@ -186,3 +188,42 @@ def leer_usuario_actual(current_user: dict = Depends(get_current_user), db: Sess
         rol_id=usuario.rol_id,
         rol_nombre=usuario.rol.nombre if usuario.rol else ""
     )
+
+@router.post("/clientes", response_model=ClienteOut)
+def crear_cliente(cliente: ClienteCreate, db: Session = Depends(get_db)):
+    nuevo_cliente = Cliente(**cliente.dict())
+    db.add(nuevo_cliente)
+    db.commit()
+    db.refresh(nuevo_cliente)
+    return nuevo_cliente
+
+@router.get("/clientes", response_model=list[ClienteOut])
+def listar_clientes(db: Session = Depends(get_db)):
+    return db.query(Cliente).all()
+
+@router.get("/clientes/{cliente_id}", response_model=ClienteOut)
+def obtener_cliente(cliente_id: int, db: Session = Depends(get_db)):
+    cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    return cliente
+
+@router.put("/clientes/{cliente_id}", response_model=ClienteOut)
+def actualizar_cliente(cliente_id: int, cliente_update: ClienteCreate, db: Session = Depends(get_db)):
+    cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    for field, value in cliente_update.dict(exclude_unset=True).items():
+        setattr(cliente, field, value)
+    db.commit()
+    db.refresh(cliente)
+    return cliente
+
+@router.delete("/clientes/{cliente_id}", response_model=ClienteOut)
+def eliminar_cliente(cliente_id: int, db: Session = Depends(get_db)):
+    cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    db.delete(cliente)
+    db.commit()
+    return cliente

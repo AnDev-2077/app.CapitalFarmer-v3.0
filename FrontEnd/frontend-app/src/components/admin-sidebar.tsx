@@ -88,7 +88,7 @@ const navigationItems = [
   {
     title: "Clientes",
     icon: Users,
-    url: "#",
+    url: "/home/clients",
     color: "text-violet-500",
   },
   {

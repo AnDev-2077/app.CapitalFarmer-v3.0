@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
 from .cuota import Cuota
+from .cliente import Cliente
 
 usuario_cotizacion = Table(
     'usuario_cotizacion', Base.metadata,
@@ -13,9 +14,9 @@ usuario_cotizacion = Table(
 
 class Cotizacion(Base):
     __tablename__ = "cotizaciones"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True)
     codigo_cotizacion = Column(String(50), nullable=True)
-    nombre_cliente = Column(String(100), nullable=False)
     email = Column(String(100), nullable=True)
     telefono = Column(String(20), nullable=True)
     fecha_vencimiento = Column(Date, nullable=True)
@@ -24,7 +25,8 @@ class Cotizacion(Base):
     comentarios = Column(Text, nullable=True)
     detalle_servicio = Column(Text, nullable=True)
     exclusiones = Column(Text, nullable=True)
-    estado = Column(String(50), nullable=False, default='Pendiente')
-    fecha_creacion = Column(TIMESTAMP, nullable=True, server_default=func.current_timestamp())
+    estado = Column(String(50), default='Pendiente', nullable=True)
+    fecha_creacion = Column(TIMESTAMP, server_default=func.current_timestamp(), nullable=True)
+    cliente = relationship("Cliente", back_populates="cotizaciones")
     usuarios = relationship('Usuario', secondary=usuario_cotizacion, back_populates='cotizaciones')
     cuotas = relationship('Cuota', back_populates='cotizacion', cascade='all, delete-orphan')

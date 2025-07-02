@@ -325,6 +325,9 @@ export default function CotizacionPanel(
     } else if (cotizacion.servicio && !servicios.includes(cotizacion.servicio)) {
       setServicioSelect("Otros");
       setServicioPersonalizado(cotizacion.servicio);
+    } else if (servicioSelect === "Otros") {
+      // Mantener "Otros" si ya está seleccionado
+      setServicioSelect("Otros");
     } else {
       setServicioSelect("");
       setServicioPersonalizado("");
@@ -548,6 +551,10 @@ export default function CotizacionPanel(
                           if (value !== "Otros") {
                             handleFieldChange("servicio", value);
                             setServicioPersonalizado("");
+                          } else {
+                            // Esto es lo que faltaba:
+                            handleFieldChange("servicio", "");
+                            setServicioPersonalizado("");
                           }
                         }}
                       >
@@ -562,7 +569,7 @@ export default function CotizacionPanel(
                           ))}
                         </SelectContent>
                       </Select>
-                      {servicioSelect === "Otros" && (
+                      {servicioSelect === "Otros"  && (
                         <Input
                           className="mt-2"
                           placeholder="Especifica el servicio"

@@ -250,8 +250,8 @@ export default function UserManagementPanel() {
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
-              <p className="text-gray-600 mt-1">Administra los usuarios del sistema</p>
+              <h1 className="text-2xl font-bold text-gray-900">Gestión de Clientes</h1>
+              <p className="text-gray-600 mt-1">Administra los clientes del sistema</p>
             </div>
           </div>
 

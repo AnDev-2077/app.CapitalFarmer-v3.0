@@ -7,6 +7,7 @@ import QuotationManagementPanel from "@/pages/home/quotes-panel"
 import AddEditQuotesPanel from "@/pages/quotes-panels/add-edit-quotes-panel"
 import DetailsQuotesPanel from "@/pages/quotes-panels/quotes-details-panel"
 import ExportQuotesPanel from "@/pages/quotes-panels/export-quotes-panel"
+import ClientsManagmentPanel from "@/pages/home/clients-panel"
 
 export default function Home() {
   return (
@@ -22,7 +23,7 @@ export default function Home() {
             <Route path="/quotes/edit/:id" element={<AddEditQuotesPanel />} />
             <Route path="/quotes/details/:id" element={<DetailsQuotesPanel />} />
             <Route path="/quotes/export/:id" element={<ExportQuotesPanel />} />
-            
+            <Route path="/clients" element={<ClientsManagmentPanel />} />
             {/* Agrega más rutas hijas aquí si tienes más paneles */}
           </Routes>
         </SidebarInset>

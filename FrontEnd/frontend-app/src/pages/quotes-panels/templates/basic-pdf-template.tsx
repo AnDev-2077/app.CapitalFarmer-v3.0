@@ -1,25 +1,13 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet} from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Image} from '@react-pdf/renderer';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-
-// --- Registrar fuentes (opcional, pero recomendado para máxima fidelidad) ---
-// Para este ejemplo, usaremos fuentes estándar como Helvetica.
-// Si quisieras usar una fuente específica como "Roboto" o "Lato", descomenta lo siguiente:
-// Font.register({
-//   family: 'Roboto',
-//   fonts: [
-//     { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf', fontWeight: 'normal' },
-//     { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf', fontWeight: 'bold' },
-//   ],
-// });
-
 
 // --- Definición de Estilos ---
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    fontFamily: 'Times-Roman', // Usa una fuente estándar como Times New Roman
+    fontFamily: 'Times-Roman',
     fontSize: 10,
     color: '#333333',
   },
@@ -27,14 +15,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#a0a0a0',
     fontSize: 9,
-    marginBottom: 20,
+    marginBottom: 5,
+    marginTop: 5,
   },
   title: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#2c3e50',
     marginBottom: 25,
     textAlign: 'center',
+    textTransform: 'uppercase',
   },
   clientInfoContainer: {
     marginBottom: 30,
@@ -140,7 +130,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#2c3e50',
-  }
+  },
+  logosRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 0,
+    marginTop: -20,
+  },
+  logo: {
+    width: 90,
+    height: 89,
+    objectFit: 'contain',   
+    margin: 0,           
+  },
 });
 
 function formateaFecha(fecha: Date | undefined) {
@@ -152,22 +155,26 @@ const QuotePDF = ({ cotizacion }: { cotizacion: any }) => {
 return (     
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* Cabecera */}
-      <Text style={styles.header}>{cotizacion.codigoCotizacion}</Text>
+
+      <View style={styles.logosRow}>
+        <Image style={styles.logo} src="/logo-izquierdo.jpg" />
+        <Image style={styles.logo} src="/logo-derecho.jpg" />
+      </View>
+
+      <View style={{ alignItems: 'center', marginBottom: 10, marginTop: -65 }}>
+        <Text style={styles.header}>{cotizacion.codigoCotizacion}</Text>
+        <Text style={styles.title}>Cotización de servicios legales</Text>
+      </View>
       
-      {/* Título Principal */}
-      <Text style={styles.title}>Cotización de servicios legales</Text>
       
       {/* Información del Cliente */}
       <View style={styles.clientInfoContainer}>
         <Text style={styles.clientInfoText}>Cliente: {cotizacion.cliente.nombre}</Text>
-        <Text style={styles.clientInfoText}>{cotizacion.cliente.telefono}</Text>
-        <Text style={styles.clientInfoText}>{cotizacion.cliente.email}</Text>
-        <Text style={{ ...styles.clientInfoText, marginTop: 10, fontSize: 9, color: '#888' }}>
-          Creación del presupuesto:
+        <Text style={{ ...styles.clientInfoText, marginTop: 10, fontSize: 9}}>
+          Fecha de emisión: {formateaFecha(cotizacion.fechaEmision)}
         </Text>
-        <Text style={{ ...styles.clientInfoText, fontSize: 9, color: '#888' }}>
-          Caducidad del presupuesto: {formateaFecha(cotizacion.fechaVencimiento)}
+        <Text style={{ ...styles.clientInfoText, fontSize: 9}}>
+          Vigencia de la propuesta: {formateaFecha(cotizacion.fechaVencimiento)}
         </Text>
       </View>
       
@@ -248,8 +255,10 @@ return (
         <Text style={styles.sectionTitle}>¿Cuánto cuesta el servicio (Honorarios)?</Text>
         <View style={styles.sectionContent}>
           <Text>- Abono inicial: S/{cotizacion.precio}</Text>
-          <Text>Este precio incluye la emisión de un Recibo por Honorarios de un abogado del estudio, 
-            pero si desea boleta o factura del estudio deberá añadir el 18% de IGV</Text>
+          <Text style={{ marginTop: 8 }}>
+            Este precio incluye la emisión de un Recibo por Honorarios de un abogado del estudio, 
+            pero si desea boleta o factura del estudio deberá añadir el 18% de IGV
+          </Text>
         </View>
       </View>
 
@@ -257,7 +266,6 @@ return (
       <View style={styles.section} wrap={false}>
         <Text style={styles.sectionTitle}>¿Cómo puedo pagar los Honorarios?</Text>
         <View style={styles.sectionContent}>
-          <Text>- Abono inicial: S/{cotizacion.precio}</Text>
           <Text>- Medios de pago: Transferencia, Yape o Plin</Text>
         </View>
       </View>
@@ -266,6 +274,7 @@ return (
       <View style={styles.footer} fixed>
         <Text style={styles.footerText}>Atentamente:</Text>
         <Text style={styles.footerBrand}>FARMER & CAPITAL ABOGADOS</Text>
+        <Text style={styles.footerText}>Tel: +51 968 140 000 | comercial.capitalfarmer@gmail.com</Text>
       </View>
     </Page>
   </Document>
