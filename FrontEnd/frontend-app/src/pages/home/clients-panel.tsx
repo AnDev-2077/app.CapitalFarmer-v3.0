@@ -37,7 +37,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/context/AuthContext";
 
 export default function UserManagementPanel() {
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setClients] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
@@ -50,12 +50,11 @@ export default function UserManagementPanel() {
     apellido: "",
     correo: "",
     telefono: "",
-    rol_id: "",
     numero_documento: "",
+    tipo_documento: "",
   })
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingUserId, setEditingUserId] = useState<number | null>(null)
-  const [roles, setRoles] = useState<{ id: number; nombre: string }[]>([])
 
   const { token } = useAuth();
 
@@ -71,30 +70,14 @@ export default function UserManagementPanel() {
             'ngrok-skip-browser-warning': 'true'
           }
         })
-      .then((res) => setUsers(res.data))
+      .then((res) => setClients(res.data))
       .catch(() => setError("Error al cargar usuarios"))
       .finally(() => setLoading(false))
   }, [token])
 
-  useEffect(() => {
-    axios
-      .get(`${API_URL}/capitalfarmer.co/api/v1/roles`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'ngrok-skip-browser-warning': 'true'
-          }
-        })
-      .then((res) => setRoles(res.data))
-      .catch(() => setRoles([]))
-  }, [])
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleRolChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, rol_id: value }))
   }
 
   const handleCreateUser = () => {
@@ -103,8 +86,8 @@ export default function UserManagementPanel() {
       apellido: "",
       correo: "",
       telefono: "",
-      rol_id: "",
       numero_documento: "",
+      tipo_documento: "",
     })
     setEditingUserId(null)
     setIsEditMode(false)
@@ -117,8 +100,8 @@ export default function UserManagementPanel() {
       apellido: user.apellido,
       correo: user.correo,
       telefono: user.telefono || "",
-      rol_id: user.rol_id?.toString() || "",
       numero_documento: user.numero_documento || "",
+      tipo_documento: user.tipo_documento || "",
     })
     setEditingUserId(user.id)
     setIsEditMode(true)
@@ -135,7 +118,7 @@ export default function UserManagementPanel() {
           }
         })
     .then(() => {
-      setUsers((prev) => prev.filter((user) => user.id !== userId))
+      setClients((prev) => prev.filter((user) => user.id !== userId))
       toast.success("Usuario eliminado correctamente")
     })
     .catch(() => toast.error("Error al eliminar usuario"))
@@ -145,7 +128,7 @@ export default function UserManagementPanel() {
     e.preventDefault()
 
     // Validación básica
-    if (!formData.nombre || !formData.apellido || !formData.correo || !formData.rol_id) {
+    if (!formData.nombre || !formData.apellido || !formData.correo) {
       toast.error("Por favor complete todos los campos obligatorios")
       return
     }
@@ -159,7 +142,7 @@ export default function UserManagementPanel() {
           }
         })
       .then((res) => {
-        setUsers((prev) =>
+        setClients((prev) =>
           prev.map((user) => (user.id === editingUserId ? res.data : user))
         );
         toast.success(`${formData.nombre} ${formData.apellido} ha sido actualizado exitosamente`);
@@ -177,8 +160,8 @@ export default function UserManagementPanel() {
           }
         })
       .then((res) => {
-        setUsers((prev) => [...prev, res.data]);
-        toast.success(`${formData.nombre} ${formData.apellido} ha sido creado exitosamente como ${formData.rol_id}`);
+        setClients((prev) => [...prev, res.data]);
+        
       })
       .catch(() => toast.error("Error al crear usuario"));
     }
@@ -189,8 +172,8 @@ export default function UserManagementPanel() {
       apellido: "",
       correo: "",
       telefono: "",
-      rol_id: "",
       numero_documento: "",
+      tipo_documento: "",
     })
     setIsEditMode(false)
     setEditingUserId(null)
@@ -236,7 +219,7 @@ export default function UserManagementPanel() {
     { id: 3, nombre: "CE" }
   ];
 
-  const isRUC = documentos.find(d => d.id.toString() === formData.rol_id)?.nombre === "RUC";
+  const isRUC = formData.tipo_documento === "RUC";
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
@@ -245,8 +228,8 @@ export default function UserManagementPanel() {
         apellido: "",
         correo: "",
         telefono: "",
-        rol_id: "",
         numero_documento: "",
+        tipo_documento: "",
       })
       setIsEditMode(false)
       setEditingUserId(null)
@@ -327,7 +310,7 @@ export default function UserManagementPanel() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Usuarios</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Total Clientes</CardTitle>
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
@@ -372,11 +355,11 @@ export default function UserManagementPanel() {
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Lista de Usuarios</CardTitle>
-              <CardDescription>Busca y gestiona todos los usuarios del sistema</CardDescription>
+              <CardTitle>Lista de Clientes</CardTitle>
+              <CardDescription>Busca y gestiona todos los clientes del sistema</CardDescription>
             </CardHeader>
             <CardContent>
-              {loading && <div className="mb-4 text-blue-600">Cargando usuarios...</div>}
+              {loading && <div className="mb-4 text-blue-600">Cargando clientes...</div>}
               {error && <div className="mb-4 text-red-600">{error}</div>}
               <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
@@ -426,14 +409,18 @@ export default function UserManagementPanel() {
                           <Label htmlFor="tipo"> 
                             Tipo <span className="text-red-500">*</span> 
                           </Label>
-                          <Select value={formData.rol_id} onValueChange={handleRolChange} required>
-                            <SelectTrigger id="rol" className="w-full ">
+                          <Select 
+                            value={formData.tipo_documento}
+                            onValueChange={value => setFormData(prev => ({ ...prev, tipo_documento: value }))}
+                            required
+                          >
+                            <SelectTrigger id="tipo_documento" className="w-full ">
                               <SelectValue placeholder="Tipo" />
                             </SelectTrigger>
                             <SelectContent>
-                              {documentos.map((rol) => (
-                                <SelectItem key={rol.id} value={rol.id.toString()}>
-                                  {rol.nombre}
+                              {documentos.map((doc) => (
+                                <SelectItem key={doc.id} value={doc.nombre}>
+                                  {doc.nombre}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -568,7 +555,6 @@ export default function UserManagementPanel() {
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Nombre</TableHead>
-                      <TableHead>Apellido</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Teléfono</TableHead>
                       <TableHead>Documento</TableHead>
@@ -579,8 +565,7 @@ export default function UserManagementPanel() {
                     {currentUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>{user.id}</TableCell>
-                        <TableCell>{user.nombre}</TableCell>
-                        <TableCell>{user.apellido}</TableCell>
+                        <TableCell>{user.nombre} {user.apellido}</TableCell>
                         <TableCell>{user.correo}</TableCell>
                         <TableCell>{user.telefono}</TableCell>
                         <TableCell>
