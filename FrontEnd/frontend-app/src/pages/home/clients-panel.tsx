@@ -243,7 +243,7 @@ export default function UserManagementPanel() {
 
   const [busquedaLoading, setBusquedaLoading] = useState(false);
     const handleBuscarDocumento = async () => {
-    const tipo = documentos.find(d => d.id.toString() === formData.rol_id)?.nombre;
+    const tipo = formData.tipo_documento;
     const numero = formData.numero_documento;
 
     let url = "";
