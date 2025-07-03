@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -37,7 +36,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/context/AuthContext";
 
 export default function UserManagementPanel() {
-  const [users, setClients] = useState<any[]>([])
+  const [clients, setClients] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
@@ -51,7 +50,7 @@ export default function UserManagementPanel() {
     correo: "",
     telefono: "",
     numero_documento: "",
-    tipo_documento: "",
+    identificacion: "",
   })
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingUserId, setEditingUserId] = useState<number | null>(null)
@@ -70,7 +69,10 @@ export default function UserManagementPanel() {
             'ngrok-skip-browser-warning': 'true'
           }
         })
-      .then((res) => setClients(res.data))
+      .then((res) => {
+        setClients(res.data);
+        console.log(res.data); // <-- Agrega esto temporalmente
+      })
       .catch(() => setError("Error al cargar usuarios"))
       .finally(() => setLoading(false))
   }, [token])
@@ -87,38 +89,38 @@ export default function UserManagementPanel() {
       correo: "",
       telefono: "",
       numero_documento: "",
-      tipo_documento: "",
+      identificacion: "",
     })
     setEditingUserId(null)
     setIsEditMode(false)
     setDialogOpen(true)
   }
 
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (client: any) => {
     setFormData({
-      nombre: user.nombre,
-      apellido: user.apellido,
-      correo: user.correo,
-      telefono: user.telefono || "",
-      numero_documento: user.numero_documento || "",
-      tipo_documento: user.tipo_documento || "",
+      nombre: client.nombre,
+      apellido: client.apellido,
+      correo: client.correo,
+      telefono: client.telefono || "",
+      numero_documento: client.numero_documento || "",
+      identificacion: client.identificacion || "",
     })
-    setEditingUserId(user.id)
+    setEditingUserId(client.id)
     setIsEditMode(true)
     setDialogOpen(true)
   }
 
 
-  const handleDeleteUser = (userId: number) => {
+  const handleDeleteUser = (clientId: number) => {
   axios
-    .delete(`${API_URL}/capitalfarmer.co/api/v1/usuarios/${userId}`, {
+    .delete(`${API_URL}/capitalfarmer.co/api/v1/usuarios/${clientId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'ngrok-skip-browser-warning': 'true'
           }
         })
     .then(() => {
-      setClients((prev) => prev.filter((user) => user.id !== userId))
+      setClients((prev) => prev.filter((client) => client.id !== clientId))
       toast.success("Usuario eliminado correctamente")
     })
     .catch(() => toast.error("Error al eliminar usuario"))
@@ -143,7 +145,7 @@ export default function UserManagementPanel() {
         })
       .then((res) => {
         setClients((prev) =>
-          prev.map((user) => (user.id === editingUserId ? res.data : user))
+          prev.map((client) => (client.id === editingUserId ? res.data : client))
         );
         toast.success(`${formData.nombre} ${formData.apellido} ha sido actualizado exitosamente`);
       })
@@ -173,30 +175,30 @@ export default function UserManagementPanel() {
       correo: "",
       telefono: "",
       numero_documento: "",
-      tipo_documento: "",
+      identificacion: "",
     })
     setIsEditMode(false)
     setEditingUserId(null)
     setDialogOpen(false)
   }
 
-  const filteredUsers = users.filter((user) => {
+  const filteredClients = clients.filter((client) => {
     const matchesSearch =
-      user.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.telefono?.includes(searchTerm) ||
-      user.rol_nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+      client.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.correo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.telefono?.includes(searchTerm) ||
+      client.rol_nombre?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesRole = roleFilter === "all" || user.rol_nombre === roleFilter
+    const matchesRole = roleFilter === "all" || client.rol_nombre === roleFilter
 
     return matchesSearch && matchesRole
   })
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredClients.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentUsers = filteredUsers.slice(startIndex, endIndex)
+  const currentUsers = filteredClients.slice(startIndex, endIndex)
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -219,7 +221,7 @@ export default function UserManagementPanel() {
     { id: 3, nombre: "CE" }
   ];
 
-  const isRUC = formData.tipo_documento === "RUC";
+  const isRUC = formData.identificacion === "RUC";
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
@@ -229,7 +231,7 @@ export default function UserManagementPanel() {
         correo: "",
         telefono: "",
         numero_documento: "",
-        tipo_documento: "",
+        identificacion: "",
       })
       setIsEditMode(false)
       setEditingUserId(null)
@@ -238,12 +240,12 @@ export default function UserManagementPanel() {
   }
 
   const uniqueRoles = Array.from(
-    new Set(users.map((u) => u.rol_nombre).filter(Boolean))
+    new Set(clients.map((u) => u.rol_nombre).filter(Boolean))
   );
 
   const [busquedaLoading, setBusquedaLoading] = useState(false);
     const handleBuscarDocumento = async () => {
-    const tipo = formData.tipo_documento;
+    const tipo = formData.identificacion;
     const numero = formData.numero_documento;
 
     let url = "";
@@ -314,7 +316,7 @@ export default function UserManagementPanel() {
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{users.length}</div>
+                <div className="text-2xl font-bold">{clients.length}</div>
                 <p className="text-xs text-gray-500">+2 desde el mes pasado</p>
               </CardContent>
             </Card>
@@ -410,8 +412,8 @@ export default function UserManagementPanel() {
                             Tipo <span className="text-red-500">*</span> 
                           </Label>
                           <Select 
-                            value={formData.tipo_documento}
-                            onValueChange={value => setFormData(prev => ({ ...prev, tipo_documento: value }))}
+                            value={formData.identificacion}
+                            onValueChange={value => setFormData(prev => ({ ...prev, identificacion: value }))}
                             required
                           >
                             <SelectTrigger id="tipo_documento" className="w-full ">
@@ -557,20 +559,18 @@ export default function UserManagementPanel() {
                       <TableHead>Nombre</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Teléfono</TableHead>
-                      <TableHead>Documento</TableHead>
+                      <TableHead>N°</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.id}</TableCell>
-                        <TableCell>{user.nombre} {user.apellido}</TableCell>
-                        <TableCell>{user.correo}</TableCell>
-                        <TableCell>{user.telefono}</TableCell>
-                        <TableCell>
-                          <Badge className={getRoleBadgeColor(user.rol_nombre)}>{user.rol_nombre}</Badge>
-                        </TableCell>
+                    {currentUsers.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell>{client.id}</TableCell>
+                        <TableCell>{client.nombre} {client.apellido}</TableCell>
+                        <TableCell>{client.correo}</TableCell>
+                        <TableCell>{client.telefono}</TableCell>
+                        <TableCell>{client.identificacion}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -579,11 +579,11 @@ export default function UserManagementPanel() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                              <DropdownMenuItem onClick={() => handleEditUser(client)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteUser(user.id)}>
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteUser(client.id)}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Eliminar
                               </DropdownMenuItem>
@@ -644,7 +644,7 @@ export default function UserManagementPanel() {
                 </div>
               </div>
               <div className="text-sm text-gray-500">
-                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredUsers.length)} de {filteredUsers.length}{" "}
+                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredClients.length)} de {filteredClients.length}{" "}
                 usuarios
               </div>
             </CardContent>
