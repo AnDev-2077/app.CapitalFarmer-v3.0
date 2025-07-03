@@ -86,7 +86,7 @@ def crear_cotizacion(cotizacion: CotizacionCreate, db: Session = Depends(get_db)
     db.refresh(nueva_cotizacion)
     response = CotizacionCreate(
         codigo_cotizacion=nueva_cotizacion.codigo_cotizacion,
-        nombre_cliente=nueva_cotizacion.nombre_cliente,
+        nombre_cliente = cotizacion.cliente.nombre if cotizacion.cliente else None,
         email=nueva_cotizacion.email,
         telefono=nueva_cotizacion.telefono,
         fecha_vencimiento=nueva_cotizacion.fecha_vencimiento,
@@ -107,7 +107,7 @@ def leer_cotizaciones(db: Session = Depends(get_db), current_user: dict = Depend
         cotizaciones_out.append(QuotationOut(
             id=cotizacion.id,
             codigo_cotizacion=cotizacion.codigo_cotizacion,
-            nombre_cliente=cotizacion.nombre_cliente,
+            nombre_cliente=cotizacion.cliente.nombre if cotizacion.cliente else None,
             email=cotizacion.email,
             telefono=cotizacion.telefono,
             fecha_vencimiento=cotizacion.fecha_vencimiento,
@@ -132,7 +132,7 @@ def obtener_cotizacion_por_id(cotizacion_id: int, db: Session = Depends(get_db),
     return QuotationOut(
         id=cotizacion.id,
         codigo_cotizacion=cotizacion.codigo_cotizacion,
-        nombre_cliente=cotizacion.nombre_cliente,
+        nombre_cliente=cotizacion.cliente.nombre if cotizacion.cliente else None,
         email=cotizacion.email,
         telefono=cotizacion.telefono,
         fecha_vencimiento=cotizacion.fecha_vencimiento,
@@ -161,7 +161,7 @@ def actualizar_cotizacion(
     return QuotationOut(
         id=cotizacion.id,
         codigo_cotizacion=cotizacion.codigo_cotizacion,
-        nombre_cliente=cotizacion.nombre_cliente,
+        nombre_cliente=cotizacion.cliente.nombre if cotizacion.cliente else None,
         email=cotizacion.email,
         telefono=cotizacion.telefono,
         fecha_vencimiento=cotizacion.fecha_vencimiento,

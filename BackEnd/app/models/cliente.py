@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import relationship
 from ..database import Base
+from .documento import Documento
 
 class Cliente(Base):
     __tablename__ = "clientes"
@@ -11,4 +12,6 @@ class Cliente(Base):
     direccion = Column(Text)
     telefono = Column(String(15))
     correo = Column(String(100))
+    nikname = Column(String(255))
     cotizaciones = relationship("Cotizacion", back_populates="cliente")
+    documentos = relationship("Documento", back_populates="cliente")

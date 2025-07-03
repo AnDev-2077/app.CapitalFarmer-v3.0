@@ -51,6 +51,7 @@ export default function UserManagementPanel() {
     correo: "",
     telefono: "",
     rol_id: "",
+    numero_documento: "",
   })
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingUserId, setEditingUserId] = useState<number | null>(null)
@@ -59,11 +60,12 @@ export default function UserManagementPanel() {
   const { token } = useAuth();
 
   const API_URL = import.meta.env.VITE_API_URL;
+  const APIPERU_TOKEN = import.meta.env.VITE_APIPERU_TOKEN;
 
   useEffect(() => {
     setLoading(true)
     axios
-      .get(`${API_URL}/capitalfarmer.co/api/v1/usuarios` , {
+      .get(`${API_URL}/capitalfarmer.co/api/v1/clientes` , {
           headers: {
             Authorization: `Bearer ${token}`,
             'ngrok-skip-browser-warning': 'true'
@@ -102,6 +104,7 @@ export default function UserManagementPanel() {
       correo: "",
       telefono: "",
       rol_id: "",
+      numero_documento: "",
     })
     setEditingUserId(null)
     setIsEditMode(false)
@@ -115,6 +118,7 @@ export default function UserManagementPanel() {
       correo: user.correo,
       telefono: user.telefono || "",
       rol_id: user.rol_id?.toString() || "",
+      numero_documento: user.numero_documento || "",
     })
     setEditingUserId(user.id)
     setIsEditMode(true)
@@ -186,6 +190,7 @@ export default function UserManagementPanel() {
       correo: "",
       telefono: "",
       rol_id: "",
+      numero_documento: "",
     })
     setIsEditMode(false)
     setEditingUserId(null)
@@ -225,6 +230,14 @@ export default function UserManagementPanel() {
     }
   }
 
+  const documentos = [
+    { id: 1, nombre: "DNI" },
+    { id: 2, nombre: "RUC" },
+    { id: 3, nombre: "CE" }
+  ];
+
+  const isRUC = documentos.find(d => d.id.toString() === formData.rol_id)?.nombre === "RUC";
+
   const handleDialogClose = (open: boolean) => {
     if (!open) {
       setFormData({
@@ -233,6 +246,7 @@ export default function UserManagementPanel() {
         correo: "",
         telefono: "",
         rol_id: "",
+        numero_documento: "",
       })
       setIsEditMode(false)
       setEditingUserId(null)
@@ -243,6 +257,61 @@ export default function UserManagementPanel() {
   const uniqueRoles = Array.from(
     new Set(users.map((u) => u.rol_nombre).filter(Boolean))
   );
+
+  const [busquedaLoading, setBusquedaLoading] = useState(false);
+    const handleBuscarDocumento = async () => {
+    const tipo = documentos.find(d => d.id.toString() === formData.rol_id)?.nombre;
+    const numero = formData.numero_documento;
+
+    let url = "";
+    let body = {};
+    if (tipo === "DNI") {
+      url = "https://apiperu.dev/api/dni";
+      body = { dni: numero };
+    } else if (tipo === "RUC") {
+      url = "https://apiperu.dev/api/ruc";
+      body = { ruc: numero };
+    } else {
+      // Si no es DNI ni RUC, no hacer nada
+      return;
+    }
+
+    setBusquedaLoading(true);
+    try {
+      const res = await axios.post(url, body, {
+        headers: {
+          Authorization: `Bearer ${APIPERU_TOKEN}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      // Aquí puedes usar res.data para autocompletar campos, mostrar info, etc.
+      console.log(res.data);
+
+      if (tipo === "DNI" && res.data.success) {
+        setFormData(prev => ({
+          ...prev,
+          nombre: res.data.data.nombres || "",
+          apellido: `${res.data.data.apellido_paterno || ""} ${res.data.data.apellido_materno || ""}`.trim(),
+          direccion: res.data.data.direccion || "",
+        }));
+      } else if (tipo === "RUC" && res.data.success) {
+        setFormData(prev => ({
+          ...prev,
+          nombre: res.data.data.nombre_o_razon_social || "",
+          direccion: res.data.data.direccion_completa || res.data.data.direccion || "",
+          apellido: "", // RUC no tiene apellido
+        }));
+      } else {
+        toast.error("No se encontraron datos para el documento ingresado");
+      }
+      // Ejemplo: setFormData(prev => ({ ...prev, nombre: res.data.data.nombres }));
+    } catch (err) {
+      alert("No se pudo consultar el documento");
+    } finally {
+      setBusquedaLoading(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -313,7 +382,7 @@ export default function UserManagementPanel() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Buscar por nombre, apellido, correo, teléfono o rol..."
+                    placeholder="Buscar por nombre, apellido, documento, teléfono o correo..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -336,93 +405,148 @@ export default function UserManagementPanel() {
                   <DialogTrigger asChild>
                     <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={handleCreateUser}>
                       <Plus className="mr-2 h-4 w-4" />
-                      Agregar Usuario
+                      Agregar Cliente
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                       <DialogTitle className="text-2xl">
-                        {isEditMode ? "Editar Datos" : "Crear Nuevo Usuario"}
+                        {isEditMode ? "Editar Datos" : "Crear Nuevo Cliente"}
                       </DialogTitle>
                       <DialogDescription>
                         {isEditMode
-                          ? "Modifique los campos necesarios para actualizar la información del usuario."
-                          : "Complete el formulario para crear un nuevo usuario en el sistema."}
+                          ? "Modifique los campos necesarios para actualizar la información del cliente."
+                          : "Complete el formulario para crear un nuevo cliente en el sistema."}
                       </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        {/* Columna 1: Tipo de documento */}
+                        <div className="space-y-2 col-span-2" >
+                          <Label htmlFor="tipo"> 
+                            Tipo <span className="text-red-500">*</span> 
+                          </Label>
+                          <Select value={formData.rol_id} onValueChange={handleRolChange} required>
+                            <SelectTrigger id="rol" className="w-full ">
+                              <SelectValue placeholder="Tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {documentos.map((rol) => (
+                                <SelectItem key={rol.id} value={rol.id.toString()}>
+                                  {rol.nombre}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Columna 2: Número de documento */}
+                        <div className="space-y-2 col-span-3">
+                          <Label htmlFor="numero_documento">
+                            Documento <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="numero_documento"
+                            name="numero_documento"
+                            placeholder="Ingrese número"
+                            value={formData.numero_documento}
+                            onChange={handleChange}
+                            required
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="space-y-2 col-span-1 flex flex-col items-end">
+                          <Label className="invisible">Acción</Label>
+                          <Button
+                            type="button"
+                            className="w-full"
+                            onClick={handleBuscarDocumento}
+                            disabled={busquedaLoading}
+                          >
+                            {busquedaLoading ? "Buscando..." : "Buscar"}
+                          </Button>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
+                        <div className={`space-y-2 ${isRUC ? "md:col-span-2" : ""}`}>
                           <Label htmlFor="nombre">
-                            Nombre <span className="text-red-500">*</span>
+                            {isRUC ? <>Razon Social <span className="text-red-500">*</span></> : <>Nombre <span className="text-red-500">*</span></>}
                           </Label>
                           <Input
                             id="nombre"
                             name="nombre"
-                            placeholder="Ingrese nombre"
+                            placeholder={isRUC ? "Ingrese razón social" : "Ingrese nombre"}
                             value={formData.nombre}
                             onChange={handleChange}
                             required
                           />
                         </div>
+                        {/* Campo Apellido, solo visible si NO es RUC */}
+                        {!isRUC && (
+                          <div className="space-y-2">
+                            <Label htmlFor="apellido">
+                              Apellido <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="apellido"
+                              name="apellido"
+                              placeholder="Ingrese apellido"
+                              value={formData.apellido}
+                              onChange={handleChange}
+                              required
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="direccion">Nombre corto</Label>
+                        <Input
+                          id="direccion"
+                          name="direccion"
+                          type="text"
+                          placeholder="Ingrese nombre corto"
+                          onChange={handleChange}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="apellido">
-                            Apellido <span className="text-red-500">*</span>
+                          <Label htmlFor="correo">
+                            Correo Electrónico <span className="text-red-500">*</span>
                           </Label>
                           <Input
-                            id="apellido"
-                            name="apellido"
-                            placeholder="Ingrese apellido"
-                            value={formData.apellido}
+                            id="correo"
+                            name="correo"
+                            type="email"
+                            placeholder="ejemplo@correo.com"
+                            value={formData.correo}
                             onChange={handleChange}
                             required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="telefono">Teléfono</Label>
+                          <Input
+                            id="telefono"
+                            name="telefono"
+                            type="tel"
+                            placeholder="987654321"
+                            value={formData.telefono}
+                            onChange={handleChange}
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="correo">
-                          Correo Electrónico <span className="text-red-500">*</span>
-                        </Label>
+                        <Label htmlFor="direccion">Dirección</Label>
                         <Input
-                          id="correo"
-                          name="correo"
-                          type="email"
-                          placeholder="ejemplo@correo.com"
-                          value={formData.correo}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="telefono">Teléfono</Label>
-                        <Input
-                          id="telefono"
-                          name="telefono"
-                          type="tel"
-                          placeholder="987654321"
-                          value={formData.telefono}
+                          id="direccion"
+                          name="direccion"
+                          type="text"
+                          placeholder="Ingrese dirección"
                           onChange={handleChange}
                         />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="rol">
-                          Rol <span className="text-red-500">*</span>
-                        </Label>
-                        <Select value={formData.rol_id} onValueChange={handleRolChange} required>
-                          <SelectTrigger id="rol">
-                            <SelectValue placeholder="Seleccione un rol" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {roles.map((rol) => (
-                              <SelectItem key={rol.id} value={rol.id.toString()}>
-                                {rol.nombre}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                       </div>
 
                       <div className="flex justify-between pt-4">
@@ -430,7 +554,7 @@ export default function UserManagementPanel() {
                           Cancelar
                         </Button>
                         <Button className="bg-blue-600" type="submit">
-                          {isEditMode ? "Actualizar Usuario" : "Crear Usuario"}
+                          {isEditMode ? "Actualizar Usuario" : "Agregar Cliente"}
                         </Button>
                       </div>
                     </form>
@@ -447,7 +571,7 @@ export default function UserManagementPanel() {
                       <TableHead>Apellido</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Teléfono</TableHead>
-                      <TableHead>Rol</TableHead>
+                      <TableHead>Documento</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>

@@ -8,6 +8,7 @@ class ClienteBase(BaseModel):
     direccion: Optional[str] = None
     telefono: Optional[str] = None
     correo: Optional[str] = None
+    nikname: Optional[str] = None
 
 class ClienteCreate(ClienteBase):
     pass
