@@ -49,8 +49,8 @@ export default function UserManagementPanel() {
     apellido: "",
     correo: "",
     telefono: "",
-    numero_documento: "",
-    identificacion: "",
+    tipo_documento: "",
+    documento: "",
   })
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingUserId, setEditingUserId] = useState<number | null>(null)
@@ -78,9 +78,13 @@ export default function UserManagementPanel() {
   }, [token])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    if (!isRUC && (name === "nombre" || name === "apellido")) {
+      setFormData((prev) => ({ ...prev, [name]: capitalizeWords(value) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
   const handleCreateUser = () => {
     setFormData({
@@ -88,8 +92,8 @@ export default function UserManagementPanel() {
       apellido: "",
       correo: "",
       telefono: "",
-      numero_documento: "",
-      identificacion: "",
+      tipo_documento: "",
+      documento: "",
     })
     setEditingUserId(null)
     setIsEditMode(false)
@@ -102,18 +106,17 @@ export default function UserManagementPanel() {
       apellido: client.apellido,
       correo: client.correo,
       telefono: client.telefono || "",
-      numero_documento: client.numero_documento || "",
-      identificacion: client.identificacion || "",
+      tipo_documento: client.tipo_documento || "",
+      documento: client.documento || "",
     })
     setEditingUserId(client.id)
     setIsEditMode(true)
     setDialogOpen(true)
   }
 
-
   const handleDeleteUser = (clientId: number) => {
   axios
-    .delete(`${API_URL}/capitalfarmer.co/api/v1/usuarios/${clientId}`, {
+    .delete(`${API_URL}/capitalfarmer.co/api/v1/clientes/${clientId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'ngrok-skip-browser-warning': 'true'
@@ -129,15 +132,22 @@ export default function UserManagementPanel() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validación básica
     if (!formData.nombre || !formData.apellido || !formData.correo) {
       toast.error("Por favor complete todos los campos obligatorios")
       return
     }
 
+    const dataToSend = {
+      ...formData,
+      nombre: isRUC ? formData.nombre : capitalizeWords(formData.nombre),
+      apellido: isRUC ? "" : capitalizeWords(formData.apellido),
+    };
+
+    console.log("JSON a enviar:", dataToSend);
+
     if (isEditMode && editingUserId) {
       axios
-      .put(`${API_URL}/capitalfarmer.co/api/v1/usuarios/${editingUserId}`, { ...formData }, {
+      .put(`${API_URL}/capitalfarmer.co/api/v1/clientes/${editingUserId}`, dataToSend, {
           headers: {
             Authorization: `Bearer ${token}`,
             'ngrok-skip-browser-warning': 'true'
@@ -152,8 +162,8 @@ export default function UserManagementPanel() {
       .catch(() => toast.error("Error al actualizar usuario"));
     } else {
       axios
-      .post(`${API_URL}/capitalfarmer.co/api/v1/registro`, {
-        ...formData,
+      .post(`${API_URL}/capitalfarmer.co/api/v1/clientes`, {
+        ...dataToSend,
         contrasena: "123456"
       }, {
           headers: {
@@ -174,8 +184,8 @@ export default function UserManagementPanel() {
       apellido: "",
       correo: "",
       telefono: "",
-      numero_documento: "",
-      identificacion: "",
+      tipo_documento: "",
+      documento: "",
     })
     setIsEditMode(false)
     setEditingUserId(null)
@@ -221,7 +231,7 @@ export default function UserManagementPanel() {
     { id: 3, nombre: "CE" }
   ];
 
-  const isRUC = formData.identificacion === "RUC";
+  const isRUC = formData.tipo_documento === "RUC";
 
   const handleDialogClose = (open: boolean) => {
     if (!open) {
@@ -230,8 +240,8 @@ export default function UserManagementPanel() {
         apellido: "",
         correo: "",
         telefono: "",
-        numero_documento: "",
-        identificacion: "",
+        tipo_documento: "",
+        documento: "",
       })
       setIsEditMode(false)
       setEditingUserId(null)
@@ -245,8 +255,8 @@ export default function UserManagementPanel() {
 
   const [busquedaLoading, setBusquedaLoading] = useState(false);
     const handleBuscarDocumento = async () => {
-    const tipo = formData.identificacion;
-    const numero = formData.numero_documento;
+    const tipo = formData.tipo_documento; 
+    const numero = formData.documento;
 
     let url = "";
     let body = {};
@@ -276,8 +286,10 @@ export default function UserManagementPanel() {
       if (tipo === "DNI" && res.data.success) {
         setFormData(prev => ({
           ...prev,
-          nombre: res.data.data.nombres || "",
-          apellido: `${res.data.data.apellido_paterno || ""} ${res.data.data.apellido_materno || ""}`.trim(),
+          nombre: capitalizeWords(res.data.data.nombres || ""),
+          apellido: capitalizeWords(
+            `${res.data.data.apellido_paterno || ""} ${res.data.data.apellido_materno || ""}`.trim()
+          ),
           direccion: res.data.data.direccion || "",
         }));
       } else if (tipo === "RUC" && res.data.success) {
@@ -297,6 +309,24 @@ export default function UserManagementPanel() {
       setBusquedaLoading(false);
     }
   };
+
+  const handleTipoDocumentoChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tipo_documento: value,
+      documento: "",
+      nombre: "",
+      apellido: "",
+      direccion: "",
+      // agrega aquí otros campos que quieras limpiar
+    }));
+  };
+
+  function capitalizeWords(str: string) {
+    return str
+      .toLowerCase()
+      .replace(/(^|\s)([a-záéíóúüñ])/giu, (match) => match.toUpperCase());
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -412,8 +442,8 @@ export default function UserManagementPanel() {
                             Tipo <span className="text-red-500">*</span> 
                           </Label>
                           <Select 
-                            value={formData.identificacion}
-                            onValueChange={value => setFormData(prev => ({ ...prev, identificacion: value }))}
+                            value={formData.tipo_documento}
+                            onValueChange={handleTipoDocumentoChange}
                             required
                           >
                             <SelectTrigger id="tipo_documento" className="w-full ">
@@ -436,9 +466,9 @@ export default function UserManagementPanel() {
                           </Label>
                           <Input
                             id="numero_documento"
-                            name="numero_documento"
+                            name="documento"
                             placeholder="Ingrese número"
-                            value={formData.numero_documento}
+                            value={formData.documento}
                             onChange={handleChange}
                             required
                             className="w-full"
@@ -559,7 +589,8 @@ export default function UserManagementPanel() {
                       <TableHead>Nombre</TableHead>
                       <TableHead>Correo</TableHead>
                       <TableHead>Teléfono</TableHead>
-                      <TableHead>N°</TableHead>
+                      <TableHead>Tipo de documento</TableHead>
+                      <TableHead>Numero de documento</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -570,7 +601,8 @@ export default function UserManagementPanel() {
                         <TableCell>{client.nombre} {client.apellido}</TableCell>
                         <TableCell>{client.correo}</TableCell>
                         <TableCell>{client.telefono}</TableCell>
-                        <TableCell>{client.identificacion}</TableCell>
+                        <TableCell>{client.tipo_documento}</TableCell>
+                        <TableCell>{client.documento}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

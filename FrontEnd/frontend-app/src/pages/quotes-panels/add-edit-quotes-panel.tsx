@@ -18,6 +18,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
+import { Combobox } from "@/components/client-combobox";
 import { cn } from "@/lib/utils"
 import QuoteSchema from "@/pages/quotes-panels/quote-template"
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,7 @@ export interface CotizacionData {
   id?: number;
   codigoCotizacion?: string;
   cliente: {
+    id?: number
     nombre: string
     email: string
     telefono: string
@@ -356,7 +358,7 @@ export default function CotizacionPanel(
     e.preventDefault();
     const payload = {
       cotizacion: {
-        nombre_cliente: cotizacion.cliente.nombre,
+        cliente_id: cotizacion.cliente.id,
         email: cotizacion.cliente.email,
         telefono: cotizacion.cliente.telefono,
         fecha_vencimiento: cotizacion.fechaVencimiento
@@ -420,6 +422,8 @@ export default function CotizacionPanel(
     return input.replace(/[^a-zA-Z0-9 ,.\-\n]/g, "");
   }
 
+
+
   console.log("Servicio para previsualización:", cotizacion.servicio);
 
   return (
@@ -451,13 +455,23 @@ export default function CotizacionPanel(
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="nombre">Cliente | Empresa</Label>
-                     <Input
-                        id="nombre"
-                        placeholder="Juan Pérez"
-                        value={cotizacion.cliente.nombre}
-                        onChange={(e) => handleClienteChange("nombre", e.target.value)}
-                      />
+                    <Label htmlFor="nombre">Seleccione Cliente | Empresa</Label>
+                    <Combobox
+                      value={cotizacion.cliente}
+                      onChange={(cliente) => {
+                        if (cliente) {
+                          setCotizacion((prev) => ({
+                            ...prev,
+                            cliente: {
+                              id: cliente.id || undefined,
+                              nombre: cliente.nombre || "",
+                              email: cliente.correo || "",
+                              telefono: cliente.telefono || "",
+                            },
+                          }));
+                        }
+                      }}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
@@ -552,7 +566,6 @@ export default function CotizacionPanel(
                             handleFieldChange("servicio", value);
                             setServicioPersonalizado("");
                           } else {
-                            // Esto es lo que faltaba:
                             handleFieldChange("servicio", "");
                             setServicioPersonalizado("");
                           }
@@ -743,6 +756,8 @@ export default function CotizacionPanel(
               </form>
             </CardContent>
           </Card>
+
+          
 
           {/* Previsualización */}
           <Card className="flex-1">

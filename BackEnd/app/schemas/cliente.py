@@ -4,11 +4,12 @@ from typing import Optional
 class ClienteBase(BaseModel):
     nombre: Optional[str] = None
     apellido: Optional[str] = None
-    identificacion: Optional[str] = None
+    documento: Optional[str] = None
     direccion: Optional[str] = None
     telefono: Optional[str] = None
     correo: Optional[str] = None
     nikname: Optional[str] = None
+    tipo_documento: Optional[str] = None
 
 class ClienteCreate(ClienteBase):
     pass

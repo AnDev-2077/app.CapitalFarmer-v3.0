@@ -6,7 +6,7 @@ from .cuota import CuotaOut
 class QuotationOut(BaseModel):
     id: int
     codigo_cotizacion: Optional[str]
-    nombre_cliente: str
+    nombre_cliente: Optional[str] = None
     email: Optional[str]
     telefono: Optional[str]
     fecha_vencimiento: Optional[date]
